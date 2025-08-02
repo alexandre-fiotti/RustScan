@@ -43,6 +43,7 @@ ratatui = "0.29.0"
 crossterm = "0.28.1"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+portable-pty = "0.8"
 
 [dev-dependencies]
 parameterized = "2.0.0"

@@ -11,7 +11,9 @@ use crossterm::{
 use ratatui::{backend::CrosstermBackend, Terminal};
 use std::io;
 
-use crate::tui_app::{output_capture, ui::UI, AppState, EventHandler};
+use crate::tui_app::{
+    ui::components::scan_results::init_tui_output_capture, ui::UI, AppState, EventHandler,
+};
 
 /// Main TUI Application
 pub struct TuiApp {
@@ -35,14 +37,11 @@ impl TuiApp {
 
     /// Run the TUI application
     pub fn run() -> io::Result<()> {
-        // Create app first to get access to output buffer
+        // Create app
         let mut app = TuiApp::new();
 
-        // Initialize tracing to capture all output to TUI buffer
-        // This replaces the env_logger::init() from main.rs when in TUI mode
-        if let Err(e) = output_capture::init_tracing_capture(app.state.output_buffer().clone()) {
-            eprintln!("Failed to initialize tracing capture: {}", e);
-        }
+        // Initialize TUI output capture
+        init_tui_output_capture(app.state.output_buffer().clone());
 
         // Setup terminal
         enable_raw_mode()?;
@@ -54,10 +53,13 @@ impl TuiApp {
         // Add welcome message to output buffer
         app.state
             .output_buffer()
-            .push_line("RustScan TUI - All scan output and logs will appear here".to_string());
+            .push_line("RustScan TUI - PTY-based command execution".to_string());
+        app.state.output_buffer().push_line(
+            "Enter targets and ports, then press Tab to navigate or Enter to confirm".to_string(),
+        );
         app.state
             .output_buffer()
-            .push_line("Use Shift+Up/Down or PageUp/PageDown to scroll through output".to_string());
+            .push_line("Use Shift+Up/Down, PageUp/PageDown, or mouse wheel to scroll".to_string());
         app.state.output_buffer().push_line("".to_string());
 
         // Run the app

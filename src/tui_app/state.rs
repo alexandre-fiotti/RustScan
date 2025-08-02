@@ -137,7 +137,7 @@ impl AppState {
                 self.scan_config.ports_input.insert_char(c);
             }
             SelectedField::Options => {
-                // Options don't support text input yet
+                // TODO: Implement options functionality later
             }
         }
     }
@@ -152,7 +152,7 @@ impl AppState {
                 self.scan_config.ports_input.remove_previous_char();
             }
             SelectedField::Options => {
-                // Options don't support text input yet
+                // TODO: Implement options functionality later
             }
         }
     }
@@ -167,7 +167,7 @@ impl AppState {
                 self.scan_config.ports_input.remove_next_char();
             }
             SelectedField::Options => {
-                // Options don't support text input yet
+                // TODO: Implement options functionality later
             }
         }
     }
@@ -182,7 +182,7 @@ impl AppState {
                 self.scan_config.ports_input.delete_previous_word();
             }
             SelectedField::Options => {
-                // Options don't support text input yet
+                // TODO: Implement options functionality later
             }
         }
     }
@@ -197,7 +197,7 @@ impl AppState {
                 self.scan_config.ports_input.delete_next_word();
             }
             SelectedField::Options => {
-                // Options don't support text input yet
+                // TODO: Implement options functionality later
             }
         }
     }
@@ -281,7 +281,7 @@ impl AppState {
                 self.scan_config.ports_input.clear();
             }
             SelectedField::Options => {
-                // TODO: Start scan
+                // TODO: Implement scan start functionality later
             }
         }
     }
