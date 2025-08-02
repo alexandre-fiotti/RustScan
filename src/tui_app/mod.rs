@@ -12,7 +12,7 @@ pub mod ui;
 pub use app::TuiApp;
 pub use events::EventHandler;
 pub use models::{OutputBuffer, TextInput};
-pub use state::{AppState, SelectedField};
+pub use state::{AppState, HoveredField, SelectedField};
 pub use ui::components::scan_results::{
     execute_shell_command_for_tui, init_tui_output_capture, is_tui_mode,
 };

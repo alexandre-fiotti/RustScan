@@ -43,11 +43,42 @@ pub const fn border_normal() -> Color {
 
 // === Common Styles ===
 
-/// Style for section titles
-pub fn title_style() -> Style {
+/// Style for main section titles (always green and bold)
+/// Used for major sections like "Scan Configuration" and "Scan Results"
+pub fn section_title_style() -> Style {
     Style::default()
         .fg(primary_green())
         .add_modifier(Modifier::BOLD)
+}
+
+/// Style for selected component titles (green and bold)
+/// Used for individual components like "Targets", "Ports", "Options" when selected
+pub fn title_selected_style() -> Style {
+    Style::default()
+        .fg(primary_green())
+        .add_modifier(Modifier::BOLD)
+}
+
+/// Style for unselected component titles (white and bold)
+/// Used for individual components like "Targets", "Ports", "Options" when not selected
+pub fn title_unselected_style() -> Style {
+    Style::default()
+        .fg(text_primary())
+        .add_modifier(Modifier::BOLD)
+}
+
+/// Style for component titles when hovered (blue and bold with underline)
+/// Provides visual feedback that the component can be clicked
+pub fn title_hovered_style() -> Style {
+    Style::default()
+        .fg(primary_blue())
+        .add_modifier(Modifier::BOLD | Modifier::UNDERLINED)
+}
+
+/// Style for component borders when hovered (blue border)
+/// Provides visual feedback that the component can be clicked
+pub fn border_hovered_style() -> Style {
+    Style::default().fg(primary_blue())
 }
 
 /// Style for active/selected elements

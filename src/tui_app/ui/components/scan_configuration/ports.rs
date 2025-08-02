@@ -11,7 +11,8 @@ use ratatui::{
 };
 
 use crate::tui_app::ui::theme::{
-    active_style, border_normal, normal_text_style, placeholder_style, text, title_style,
+    active_style, border_hovered_style, border_normal, normal_text_style, placeholder_style, text,
+    title_hovered_style, title_selected_style, title_unselected_style,
 };
 use crate::tui_app::{AppState, SelectedField};
 
@@ -22,8 +23,11 @@ pub struct PortsComponent;
 impl PortsComponent {
     /// Render the ports configuration section
     pub fn render(&self, f: &mut Frame, area: Rect, state: &AppState) {
+        use crate::tui_app::state::HoveredField;
+
         let config = state.scan_config();
         let is_selected = matches!(state.selected_field(), SelectedField::Ports);
+        let is_hovered = matches!(state.hovered_field(), HoveredField::Ports);
 
         // Show input buffer if editing, otherwise show confirmed ports or placeholder
         let display_text = if !config.ports_input.is_empty() {
@@ -40,16 +44,22 @@ impl PortsComponent {
             placeholder_style()
         };
 
-        let border_style = if is_selected {
-            active_style()
+        // Choose border and title styles based on selection and hover state
+        let (border_style, title_style) = if is_selected {
+            (active_style(), title_selected_style())
+        } else if is_hovered {
+            (border_hovered_style(), title_hovered_style())
         } else {
-            Style::default().fg(border_normal())
+            (
+                Style::default().fg(border_normal()),
+                title_unselected_style(),
+            )
         };
 
         let widget = Paragraph::new(display_text).style(style).block(
             Block::default()
                 .borders(Borders::ALL)
-                .title(Span::styled(text::PORTS_TITLE, title_style()))
+                .title(Span::styled(text::PORTS_TITLE, title_style))
                 .border_style(border_style)
                 .padding(ratatui::widgets::Padding::horizontal(1)),
         );

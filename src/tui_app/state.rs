@@ -14,6 +14,15 @@ pub enum SelectedField {
     Options,
 }
 
+/// Which component is currently being hovered over by the mouse
+#[derive(Debug, Clone, PartialEq)]
+pub enum HoveredField {
+    None,
+    Targets,
+    Ports,
+    Options,
+}
+
 /// Simple scan configuration state
 #[derive(Debug, Clone)]
 pub struct ScanConfig {
@@ -53,6 +62,8 @@ pub struct AppState {
     scan_config: ScanConfig,
     /// Currently selected input field
     selected_field: SelectedField,
+    /// Currently hovered field (for mouse interaction feedback)
+    hovered_field: HoveredField,
     /// Terminal output buffer for displaying all output
     output_buffer: OutputBuffer,
 }
@@ -65,6 +76,7 @@ impl AppState {
             opts: Opts::default(),
             scan_config: ScanConfig::default(),
             selected_field: SelectedField::Targets,
+            hovered_field: HoveredField::None,
             output_buffer: OutputBuffer::new(),
         }
     }
@@ -294,6 +306,16 @@ impl AppState {
     /// Get mutable reference to the output buffer
     pub fn output_buffer_mut(&mut self) -> &mut OutputBuffer {
         &mut self.output_buffer
+    }
+
+    /// Get the currently hovered field
+    pub fn hovered_field(&self) -> &HoveredField {
+        &self.hovered_field
+    }
+
+    /// Set the hovered field
+    pub fn set_hovered_field(&mut self, field: HoveredField) {
+        self.hovered_field = field;
     }
 }
 

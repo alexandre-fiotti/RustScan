@@ -6,7 +6,8 @@
 use crossterm::event::{Event, KeyCode, KeyEventKind, KeyModifiers, MouseEventKind};
 use std::io;
 
-use crate::tui_app::AppState;
+use crate::tui_app::ui::theme::layout;
+use crate::tui_app::{AppState, SelectedField};
 
 /// Event handler for TUI input processing
 pub struct EventHandler;
@@ -159,9 +160,70 @@ impl EventHandler {
             MouseEventKind::ScrollDown => {
                 state.output_buffer().scroll_down(3);
             }
+            MouseEventKind::Down(crossterm::event::MouseButton::Left) => {
+                // Handle left mouse click for component selection
+                self.handle_component_click(state, mouse.column, mouse.row);
+            }
+            MouseEventKind::Moved => {
+                // Handle mouse movement for hover effects
+                self.handle_mouse_hover(state, mouse.column, mouse.row);
+            }
             _ => {}
         }
         Ok(())
+    }
+
+    /// Handle mouse movement to provide hover feedback
+    fn handle_mouse_hover(&self, state: &mut AppState, _column: u16, row: u16) {
+        use crate::tui_app::state::HoveredField;
+
+        // Calculate component positions using theme constants
+        let scan_config_inner_start = layout::HEADER_HEIGHT + 1 + layout::STANDARD_MARGIN;
+
+        if row >= scan_config_inner_start {
+            let relative_row = row - scan_config_inner_start;
+            let component_index = relative_row / layout::INPUT_COMPONENT_HEIGHT;
+
+            let hovered_field = match component_index {
+                0 => HoveredField::Targets,
+                1 => HoveredField::Ports,
+                2 => HoveredField::Options,
+                _ => HoveredField::None, // Outside component area
+            };
+
+            state.set_hovered_field(hovered_field);
+        } else {
+            // Outside scan config area
+            state.set_hovered_field(HoveredField::None);
+        }
+    }
+
+    /// Handle mouse click to select components
+    fn handle_component_click(&self, state: &mut AppState, _column: u16, row: u16) {
+        // Calculate component positions using theme constants
+        // Layout structure:
+        // - Header: layout::HEADER_HEIGHT
+        // - Scan config section border: 1 line
+        // - Scan config internal margin: layout::STANDARD_MARGIN
+        // - Each component: layout::INPUT_COMPONENT_HEIGHT
+
+        let scan_config_inner_start = layout::HEADER_HEIGHT + 1 + layout::STANDARD_MARGIN;
+
+        if row >= scan_config_inner_start {
+            let relative_row = row - scan_config_inner_start;
+            let component_index = relative_row / layout::INPUT_COMPONENT_HEIGHT;
+
+            let new_field = match component_index {
+                0 => Some(SelectedField::Targets),
+                1 => Some(SelectedField::Ports),
+                2 => Some(SelectedField::Options),
+                _ => None, // Click outside valid component area
+            };
+
+            if let Some(field) = new_field {
+                state.set_selected_field(field);
+            }
+        }
     }
 }
 

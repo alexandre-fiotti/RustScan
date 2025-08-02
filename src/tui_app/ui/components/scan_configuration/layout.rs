@@ -9,7 +9,7 @@ use ratatui::{
     Frame,
 };
 
-use crate::tui_app::ui::theme::{layout, text, title_style};
+use crate::tui_app::ui::theme::{layout, section_title_style, text};
 
 /// Layout utilities for the scan configuration section
 pub struct ScanConfigLayout;
@@ -19,7 +19,7 @@ impl ScanConfigLayout {
     pub fn render_section_frame(f: &mut Frame, area: Rect) -> Rect {
         let config_block = Block::default()
             .borders(Borders::ALL)
-            .title(Span::styled(text::SCAN_CONFIG_TITLE, title_style()));
+            .title(Span::styled(text::SCAN_CONFIG_TITLE, section_title_style()));
 
         f.render_widget(config_block.clone(), area);
         config_block.inner(area)

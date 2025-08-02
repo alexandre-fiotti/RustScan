@@ -4,12 +4,13 @@
 
 use ratatui::{
     layout::Rect,
+    style::Style,
     text::{Line, Span},
     widgets::{Block, Borders, Paragraph, Wrap},
     Frame,
 };
 
-use crate::tui_app::ui::theme::{normal_text_style, text, title_style};
+use crate::tui_app::ui::theme::{section_title_style, text};
 use crate::tui_app::AppState;
 
 /// Component for displaying scan results and terminal output
@@ -52,12 +53,12 @@ impl ResultsComponent {
         };
 
         let results_widget = Paragraph::new(text_lines)
-            .style(normal_text_style())
+            .style(Style::default())
             .wrap(Wrap { trim: false })
             .block(
                 Block::default()
                     .borders(Borders::ALL)
-                    .title(Span::styled(title, title_style())),
+                    .title(Span::styled(title, section_title_style())),
             );
 
         f.render_widget(results_widget, area);
