@@ -29,7 +29,7 @@ impl TuiApp {
         Self {
             state: AppState::new(),
             event_handler: EventHandler::new(),
-            ui: UI::new(),
+            ui: UI::default(),
         }
     }
 

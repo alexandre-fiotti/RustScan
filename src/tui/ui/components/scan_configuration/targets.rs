@@ -1,25 +1,25 @@
 //! Targets Component
 //!
-//! This component handles target selection (IP addresses, hostnames, CIDR ranges).
+//! This component handles displaying and managing target configuration.
 
 use ratatui::{
     layout::{Position, Rect},
-    style::{Color, Style},
+    style::Style,
+    text::Span,
     widgets::{Block, Borders, Paragraph},
     Frame,
 };
 
 use crate::tui::state::{AppState, SelectedField};
+use crate::tui::ui::theme::{
+    active_style, border_normal, normal_text_style, placeholder_style, text, title_style,
+};
 
 /// Component for managing scan targets
+#[derive(Default)]
 pub struct TargetsComponent;
 
 impl TargetsComponent {
-    /// Create a new targets component
-    pub fn new() -> Self {
-        Self
-    }
-
     /// Render the targets configuration section
     pub fn render(&self, f: &mut Frame, area: Rect, state: &AppState) {
         let config = state.scan_config();
@@ -31,25 +31,25 @@ impl TargetsComponent {
         } else if !config.targets.is_empty() {
             config.targets.join(", ")
         } else {
-            "Enter targets (e.g., 192.168.1.1, example.com, 10.0.0.0/24)".to_string()
+            text::TARGETS_PLACEHOLDER.to_string()
         };
 
         let style = if !config.targets_input.is_empty() || !config.targets.is_empty() {
-            Style::default().fg(Color::White)
+            normal_text_style()
         } else {
-            Style::default().fg(Color::Gray)
+            placeholder_style()
         };
 
         let border_style = if is_selected {
-            Style::default().fg(crate::tui::ui::layout::Layout::banner_green())
+            active_style()
         } else {
-            Style::default().fg(Color::White)
+            Style::default().fg(border_normal())
         };
 
         let widget = Paragraph::new(display_text).style(style).block(
             Block::default()
                 .borders(Borders::ALL)
-                .title("Targets")
+                .title(Span::styled(text::TARGETS_TITLE, title_style()))
                 .border_style(border_style)
                 .padding(ratatui::widgets::Padding::horizontal(1)),
         );
@@ -63,11 +63,5 @@ impl TargetsComponent {
                 area.y + 1,
             ));
         }
-    }
-}
-
-impl Default for TargetsComponent {
-    fn default() -> Self {
-        Self::new()
     }
 }

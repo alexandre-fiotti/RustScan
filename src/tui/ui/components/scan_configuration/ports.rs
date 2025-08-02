@@ -1,25 +1,25 @@
 //! Ports Component
 //!
-//! This component handles port configuration (ranges, specific ports, common ports).
+//! This component handles displaying and managing port configuration.
 
 use ratatui::{
     layout::{Position, Rect},
-    style::{Color, Style},
+    style::Style,
+    text::Span,
     widgets::{Block, Borders, Paragraph},
     Frame,
 };
 
 use crate::tui::state::{AppState, SelectedField};
+use crate::tui::ui::theme::{
+    active_style, border_normal, normal_text_style, placeholder_style, text, title_style,
+};
 
-/// Component for managing port configuration
+/// Component for managing port selection
+#[derive(Default)]
 pub struct PortsComponent;
 
 impl PortsComponent {
-    /// Create a new ports component
-    pub fn new() -> Self {
-        Self
-    }
-
     /// Render the ports configuration section
     pub fn render(&self, f: &mut Frame, area: Rect, state: &AppState) {
         let config = state.scan_config();
@@ -31,25 +31,25 @@ impl PortsComponent {
         } else if let Some(ports) = &config.ports {
             ports.clone()
         } else {
-            "All ports (1-65535) - Enter custom ports (e.g., 80,443,22 or 1-1000)".to_string()
+            text::PORTS_PLACEHOLDER.to_string()
         };
 
         let style = if !config.ports_input.is_empty() || config.ports.is_some() {
-            Style::default().fg(Color::White)
+            normal_text_style()
         } else {
-            Style::default().fg(Color::Gray)
+            placeholder_style()
         };
 
         let border_style = if is_selected {
-            Style::default().fg(crate::tui::ui::layout::Layout::banner_green())
+            active_style()
         } else {
-            Style::default().fg(Color::White)
+            Style::default().fg(border_normal())
         };
 
         let widget = Paragraph::new(display_text).style(style).block(
             Block::default()
                 .borders(Borders::ALL)
-                .title("Ports")
+                .title(Span::styled(text::PORTS_TITLE, title_style()))
                 .border_style(border_style)
                 .padding(ratatui::widgets::Padding::horizontal(1)),
         );
@@ -63,11 +63,5 @@ impl PortsComponent {
                 area.y + 1,
             ));
         }
-    }
-}
-
-impl Default for PortsComponent {
-    fn default() -> Self {
-        Self::new()
     }
 }

@@ -8,48 +8,36 @@ use ratatui::Frame;
 
 pub mod components;
 pub mod layout;
+pub mod theme;
 
-use components::ScanComponents;
-use layout::Layout;
+use components::UIComponents;
 
 /// Main UI coordinator
+#[derive(Default)]
 pub struct UI {
-    layout: Layout,
-    scan_components: ScanComponents,
+    components: UIComponents,
 }
 
 impl UI {
-    /// Create a new UI instance
-    pub fn new() -> Self {
-        Self {
-            layout: Layout::new(),
-            scan_components: ScanComponents::new(),
-        }
-    }
-
     /// Render the entire UI
     pub fn render(&self, f: &mut Frame, state: &AppState) {
-        // Create main layout: banner + content
-        let main_chunks = self.layout.main_layout(f.area());
+        // Create main layout: banner + content + footer
+        let main_chunks = layout::Layout::main_layout(f.area());
 
-        // Render banner
-        self.layout.render_banner(f, main_chunks[0]);
+        // Render header banner
+        self.components.render_header(f, main_chunks[0]);
 
         // Create two-section layout: config (top) + results (bottom)
-        let content_chunks = self.layout.two_section_layout(main_chunks[1]);
+        let content_chunks = layout::Layout::two_section_layout(main_chunks[1]);
 
         // Render scan configuration section
-        self.scan_components
-            .render_config_section(f, content_chunks[0], state);
+        self.components
+            .render_scan_config(f, content_chunks[0], state);
 
         // Render scan results section
-        self.scan_components
-            .render_results_section(f, content_chunks[1], state);
-    }
-}
+        self.components.render_results(f, content_chunks[1], state);
 
-impl Default for UI {
-    fn default() -> Self {
-        Self::new()
+        // Render footer
+        self.components.render_footer(f, main_chunks[2]);
     }
 }
