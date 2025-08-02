@@ -11,7 +11,7 @@ use crossterm::{
 use ratatui::{backend::CrosstermBackend, Terminal};
 use std::io;
 
-use crate::tui_app::{ui::UI, AppState, EventHandler};
+use crate::tui_app::{output_capture, ui::UI, AppState, EventHandler};
 
 /// Main TUI Application
 pub struct TuiApp {
@@ -35,6 +35,15 @@ impl TuiApp {
 
     /// Run the TUI application
     pub fn run() -> io::Result<()> {
+        // Create app first to get access to output buffer
+        let mut app = TuiApp::new();
+
+        // Initialize tracing to capture all output to TUI buffer
+        // This replaces the env_logger::init() from main.rs when in TUI mode
+        if let Err(e) = output_capture::init_tracing_capture(app.state.output_buffer().clone()) {
+            eprintln!("Failed to initialize tracing capture: {}", e);
+        }
+
         // Setup terminal
         enable_raw_mode()?;
         let mut stdout = io::stdout();
@@ -42,8 +51,16 @@ impl TuiApp {
         let backend = CrosstermBackend::new(stdout);
         let mut terminal = Terminal::new(backend)?;
 
-        // Create app and run
-        let mut app = TuiApp::new();
+        // Add welcome message to output buffer
+        app.state
+            .output_buffer()
+            .push_line("RustScan TUI - All scan output and logs will appear here".to_string());
+        app.state
+            .output_buffer()
+            .push_line("Use Shift+Up/Down or PageUp/PageDown to scroll through output".to_string());
+        app.state.output_buffer().push_line("".to_string());
+
+        // Run the app
         let res = run_app(&mut terminal, &mut app);
 
         // Restore terminal
@@ -65,6 +82,11 @@ impl TuiApp {
     /// Get reference to the app state
     pub fn state(&self) -> &AppState {
         &self.state
+    }
+
+    /// Get mutable reference to the app state
+    pub fn state_mut(&mut self) -> &mut AppState {
+        &mut self.state
     }
 }
 

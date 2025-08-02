@@ -4,7 +4,7 @@
 //! It provides a clean separation between UI logic and state management.
 
 use crate::input::Opts;
-use crate::tui_app::models::TextInput;
+use crate::tui_app::models::{OutputBuffer, TextInput};
 
 /// Which input field is currently selected
 #[derive(Debug, Clone, PartialEq)]
@@ -53,6 +53,8 @@ pub struct AppState {
     scan_config: ScanConfig,
     /// Currently selected input field
     selected_field: SelectedField,
+    /// Terminal output buffer for displaying all output
+    output_buffer: OutputBuffer,
 }
 
 impl AppState {
@@ -63,6 +65,7 @@ impl AppState {
             opts: Opts::default(),
             scan_config: ScanConfig::default(),
             selected_field: SelectedField::Targets,
+            output_buffer: OutputBuffer::new(),
         }
     }
 
@@ -169,6 +172,64 @@ impl AppState {
         }
     }
 
+    /// Delete previous word from currently selected input field (Ctrl+Backspace)
+    pub fn delete_previous_word(&mut self) {
+        match self.selected_field {
+            SelectedField::Targets => {
+                self.scan_config.targets_input.delete_previous_word();
+            }
+            SelectedField::Ports => {
+                self.scan_config.ports_input.delete_previous_word();
+            }
+            SelectedField::Options => {
+                // Options don't support text input yet
+            }
+        }
+    }
+
+    /// Delete next word from currently selected input field (Alt+Delete)
+    pub fn delete_next_word(&mut self) {
+        match self.selected_field {
+            SelectedField::Targets => {
+                self.scan_config.targets_input.delete_next_word();
+            }
+            SelectedField::Ports => {
+                self.scan_config.ports_input.delete_next_word();
+            }
+            SelectedField::Options => {
+                // Options don't support text input yet
+            }
+        }
+    }
+
+    /// Move cursor to previous word in current field (Ctrl+Left)
+    pub fn move_cursor_to_previous_word(&mut self) {
+        match self.selected_field {
+            SelectedField::Targets => {
+                self.scan_config
+                    .targets_input
+                    .move_cursor_to_previous_word();
+            }
+            SelectedField::Ports => {
+                self.scan_config.ports_input.move_cursor_to_previous_word();
+            }
+            SelectedField::Options => {}
+        }
+    }
+
+    /// Move cursor to next word in current field (Ctrl+Right)
+    pub fn move_cursor_to_next_word(&mut self) {
+        match self.selected_field {
+            SelectedField::Targets => {
+                self.scan_config.targets_input.move_cursor_to_next_word();
+            }
+            SelectedField::Ports => {
+                self.scan_config.ports_input.move_cursor_to_next_word();
+            }
+            SelectedField::Options => {}
+        }
+    }
+
     /// Move cursor left in current field
     pub fn move_cursor_left(&mut self) {
         match self.selected_field {
@@ -223,6 +284,16 @@ impl AppState {
                 // TODO: Start scan
             }
         }
+    }
+
+    /// Get reference to the output buffer
+    pub fn output_buffer(&self) -> &OutputBuffer {
+        &self.output_buffer
+    }
+
+    /// Get mutable reference to the output buffer
+    pub fn output_buffer_mut(&mut self) -> &mut OutputBuffer {
+        &mut self.output_buffer
     }
 }
 

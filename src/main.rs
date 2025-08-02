@@ -39,16 +39,18 @@ fn main() {
     #[cfg(not(unix))]
     let _ = ansi_term::enable_ansi_support();
 
-    env_logger::init();
-
     // Check if we should launch TUI (no arguments provided)
     if std::env::args().len() <= 1 {
+        // Don't initialize env_logger when in TUI mode - TUI handles its own tracing
         if let Err(e) = TuiApp::run() {
             warning!(format!("Failed to start TUI: {e}"));
             std::process::exit(1);
         }
         return;
     }
+
+    // Initialize env_logger only for CLI mode
+    env_logger::init();
 
     let mut benchmarks = Benchmark::init();
     let mut rustscan_bench = NamedTimer::start("RustScan");

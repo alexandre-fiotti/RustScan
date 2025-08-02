@@ -7,6 +7,8 @@
 //! state and provide methods to manipulate that state, such as text inputs,
 //! configuration objects, and other data containers.
 
+pub mod output_buffer;
 pub mod text_input;
 
+pub use output_buffer::{OutputBuffer, ScrollInfo};
 pub use text_input::TextInput;
