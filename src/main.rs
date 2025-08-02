@@ -7,6 +7,7 @@ use rustscan::input::{self, Config, Opts, ScriptsRequired};
 use rustscan::port_strategy::PortStrategy;
 use rustscan::scanner::Scanner;
 use rustscan::scripts::{init_scripts, Script, ScriptFile};
+use rustscan::tui::TuiApp;
 use rustscan::{detail, funny_opening, output, warning};
 
 use colorful::{Color, Colorful};
@@ -39,6 +40,16 @@ fn main() {
     let _ = ansi_term::enable_ansi_support();
 
     env_logger::init();
+
+    // Check if we should launch TUI (no arguments provided)
+    if std::env::args().len() <= 1 {
+        if let Err(e) = TuiApp::run() {
+            warning!(format!("Failed to start TUI: {e}"));
+            std::process::exit(1);
+        }
+        return;
+    }
+
     let mut benchmarks = Benchmark::init();
     let mut rustscan_bench = NamedTimer::start("RustScan");
 
