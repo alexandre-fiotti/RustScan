@@ -8,7 +8,7 @@ use ratatui::{
     Frame,
 };
 
-use crate::tui::ui::theme::{link_style, text};
+use crate::tui_app::ui::theme::{link_style, text};
 
 /// Component for displaying footer links
 #[derive(Default)]

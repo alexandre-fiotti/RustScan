@@ -2,7 +2,7 @@
 //!
 //! This module contains all UI components for the TUI interface.
 
-use crate::tui::state::AppState;
+use crate::tui_app::AppState;
 use ratatui::{layout::Rect, Frame};
 
 pub mod footer;

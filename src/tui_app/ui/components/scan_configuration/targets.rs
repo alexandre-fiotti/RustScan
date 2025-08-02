@@ -10,10 +10,10 @@ use ratatui::{
     Frame,
 };
 
-use crate::tui::state::{AppState, SelectedField};
-use crate::tui::ui::theme::{
+use crate::tui_app::ui::theme::{
     active_style, border_normal, normal_text_style, placeholder_style, text, title_style,
 };
+use crate::tui_app::{AppState, SelectedField};
 
 /// Component for managing scan targets
 #[derive(Default)]
@@ -27,7 +27,7 @@ impl TargetsComponent {
 
         // Show input buffer if editing, otherwise show confirmed targets
         let display_text = if !config.targets_input.is_empty() {
-            config.targets_input.clone()
+            config.targets_input.text().to_string()
         } else if !config.targets.is_empty() {
             config.targets.join(", ")
         } else {
@@ -59,7 +59,7 @@ impl TargetsComponent {
         // Set cursor position if this field is selected and we're editing
         if is_selected && !config.targets_input.is_empty() {
             f.set_cursor_position(Position::new(
-                area.x + config.targets_cursor as u16 + 2,
+                area.x + config.targets_input.cursor() as u16 + 2,
                 area.y + 1,
             ));
         }

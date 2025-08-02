@@ -42,6 +42,7 @@
 #![allow(clippy::needless_doctest_main)]
 
 pub mod tui;
+pub mod tui_app;
 
 pub mod input;
 

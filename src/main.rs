@@ -7,7 +7,7 @@ use rustscan::input::{self, Config, Opts, ScriptsRequired};
 use rustscan::port_strategy::PortStrategy;
 use rustscan::scanner::Scanner;
 use rustscan::scripts::{init_scripts, Script, ScriptFile};
-use rustscan::tui::TuiApp;
+use rustscan::tui_app::TuiApp;
 use rustscan::{detail, funny_opening, output, warning};
 
 use colorful::{Color, Colorful};

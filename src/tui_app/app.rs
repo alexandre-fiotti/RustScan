@@ -11,7 +11,7 @@ use crossterm::{
 use ratatui::{backend::CrosstermBackend, Terminal};
 use std::io;
 
-use crate::tui::{events::EventHandler, state::AppState, ui::UI};
+use crate::tui_app::{ui::UI, AppState, EventHandler};
 
 /// Main TUI Application
 pub struct TuiApp {

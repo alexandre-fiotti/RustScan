@@ -4,6 +4,7 @@
 //! It provides a clean separation between UI logic and state management.
 
 use crate::input::Opts;
+use crate::tui_app::models::TextInput;
 
 /// Which input field is currently selected
 #[derive(Debug, Clone, PartialEq)]
@@ -24,12 +25,9 @@ pub struct ScanConfig {
     pub timeout: u32,
     /// Batch size
     pub batch_size: u16,
-    /// Input buffers for editing
-    pub targets_input: String,
-    pub ports_input: String,
-    /// Cursor positions for input fields
-    pub targets_cursor: usize,
-    pub ports_cursor: usize,
+    /// Text input components
+    pub targets_input: TextInput,
+    pub ports_input: TextInput,
 }
 
 impl Default for ScanConfig {
@@ -39,10 +37,8 @@ impl Default for ScanConfig {
             ports: None,
             timeout: 1500,
             batch_size: 4500,
-            targets_input: String::new(),
-            ports_input: String::new(),
-            targets_cursor: 0,
-            ports_cursor: 0,
+            targets_input: TextInput::new(),
+            ports_input: TextInput::new(),
         }
     }
 }
@@ -132,14 +128,10 @@ impl AppState {
     pub fn add_char(&mut self, c: char) {
         match self.selected_field {
             SelectedField::Targets => {
-                let index = self.byte_index_targets();
-                self.scan_config.targets_input.insert(index, c);
-                self.move_targets_cursor_right();
+                self.scan_config.targets_input.insert_char(c);
             }
             SelectedField::Ports => {
-                let index = self.byte_index_ports();
-                self.scan_config.ports_input.insert(index, c);
-                self.move_ports_cursor_right();
+                self.scan_config.ports_input.insert_char(c);
             }
             SelectedField::Options => {
                 // Options don't support text input yet
@@ -148,13 +140,28 @@ impl AppState {
     }
 
     /// Remove last character from currently selected input field
-    pub fn remove_char(&mut self) {
+    pub fn remove_previous_char(&mut self) {
         match self.selected_field {
             SelectedField::Targets => {
-                self.delete_targets_char();
+                self.scan_config.targets_input.remove_previous_char();
             }
             SelectedField::Ports => {
-                self.delete_ports_char();
+                self.scan_config.ports_input.remove_previous_char();
+            }
+            SelectedField::Options => {
+                // Options don't support text input yet
+            }
+        }
+    }
+
+    /// Remove next character from currently selected input field
+    pub fn remove_next_char(&mut self) {
+        match self.selected_field {
+            SelectedField::Targets => {
+                self.scan_config.targets_input.remove_next_char();
+            }
+            SelectedField::Ports => {
+                self.scan_config.ports_input.remove_next_char();
             }
             SelectedField::Options => {
                 // Options don't support text input yet
@@ -166,10 +173,10 @@ impl AppState {
     pub fn move_cursor_left(&mut self) {
         match self.selected_field {
             SelectedField::Targets => {
-                self.move_targets_cursor_left();
+                self.scan_config.targets_input.move_cursor_left();
             }
             SelectedField::Ports => {
-                self.move_ports_cursor_left();
+                self.scan_config.ports_input.move_cursor_left();
             }
             SelectedField::Options => {}
         }
@@ -179,108 +186,13 @@ impl AppState {
     pub fn move_cursor_right(&mut self) {
         match self.selected_field {
             SelectedField::Targets => {
-                self.move_targets_cursor_right();
+                self.scan_config.targets_input.move_cursor_right();
             }
             SelectedField::Ports => {
-                self.move_ports_cursor_right();
+                self.scan_config.ports_input.move_cursor_right();
             }
             SelectedField::Options => {}
         }
-    }
-
-    // Helper methods for targets field
-    fn byte_index_targets(&self) -> usize {
-        self.scan_config
-            .targets_input
-            .char_indices()
-            .map(|(i, _)| i)
-            .nth(self.scan_config.targets_cursor)
-            .unwrap_or(self.scan_config.targets_input.len())
-    }
-
-    fn move_targets_cursor_left(&mut self) {
-        let cursor_moved_left = self.scan_config.targets_cursor.saturating_sub(1);
-        self.scan_config.targets_cursor = self.clamp_targets_cursor(cursor_moved_left);
-    }
-
-    fn move_targets_cursor_right(&mut self) {
-        let cursor_moved_right = self.scan_config.targets_cursor.saturating_add(1);
-        self.scan_config.targets_cursor = self.clamp_targets_cursor(cursor_moved_right);
-    }
-
-    fn clamp_targets_cursor(&self, new_cursor_pos: usize) -> usize {
-        new_cursor_pos.clamp(0, self.scan_config.targets_input.chars().count())
-    }
-
-    fn delete_targets_char(&mut self) {
-        let is_not_cursor_leftmost = self.scan_config.targets_cursor != 0;
-        if is_not_cursor_leftmost {
-            let current_index = self.scan_config.targets_cursor;
-            let from_left_to_current_index = current_index - 1;
-
-            let before_char_to_delete = self
-                .scan_config
-                .targets_input
-                .chars()
-                .take(from_left_to_current_index);
-            let after_char_to_delete = self.scan_config.targets_input.chars().skip(current_index);
-
-            self.scan_config.targets_input =
-                before_char_to_delete.chain(after_char_to_delete).collect();
-            self.move_targets_cursor_left();
-        }
-    }
-
-    // Helper methods for ports field
-    fn byte_index_ports(&self) -> usize {
-        self.scan_config
-            .ports_input
-            .char_indices()
-            .map(|(i, _)| i)
-            .nth(self.scan_config.ports_cursor)
-            .unwrap_or(self.scan_config.ports_input.len())
-    }
-
-    fn move_ports_cursor_left(&mut self) {
-        let cursor_moved_left = self.scan_config.ports_cursor.saturating_sub(1);
-        self.scan_config.ports_cursor = self.clamp_ports_cursor(cursor_moved_left);
-    }
-
-    fn move_ports_cursor_right(&mut self) {
-        let cursor_moved_right = self.scan_config.ports_cursor.saturating_add(1);
-        self.scan_config.ports_cursor = self.clamp_ports_cursor(cursor_moved_right);
-    }
-
-    fn clamp_ports_cursor(&self, new_cursor_pos: usize) -> usize {
-        new_cursor_pos.clamp(0, self.scan_config.ports_input.chars().count())
-    }
-
-    fn delete_ports_char(&mut self) {
-        let is_not_cursor_leftmost = self.scan_config.ports_cursor != 0;
-        if is_not_cursor_leftmost {
-            let current_index = self.scan_config.ports_cursor;
-            let from_left_to_current_index = current_index - 1;
-
-            let before_char_to_delete = self
-                .scan_config
-                .ports_input
-                .chars()
-                .take(from_left_to_current_index);
-            let after_char_to_delete = self.scan_config.ports_input.chars().skip(current_index);
-
-            self.scan_config.ports_input =
-                before_char_to_delete.chain(after_char_to_delete).collect();
-            self.move_ports_cursor_left();
-        }
-    }
-
-    /// Reset cursor when confirming input
-    fn reset_targets_cursor(&mut self) {
-        self.scan_config.targets_cursor = 0;
-    }
-
-    fn reset_ports_cursor(&mut self) {
-        self.scan_config.ports_cursor = 0;
     }
 
     /// Confirm input for currently selected field
@@ -291,20 +203,21 @@ impl AppState {
                     self.scan_config.targets = self
                         .scan_config
                         .targets_input
+                        .text()
                         .split(',')
                         .map(|s| s.trim().to_string())
                         .filter(|s| !s.is_empty())
                         .collect();
                 }
-                self.reset_targets_cursor();
+                self.scan_config.targets_input.clear();
             }
             SelectedField::Ports => {
                 if !self.scan_config.ports_input.is_empty() {
-                    self.scan_config.ports = Some(self.scan_config.ports_input.clone());
+                    self.scan_config.ports = Some(self.scan_config.ports_input.text().to_string());
                 } else {
                     self.scan_config.ports = None;
                 }
-                self.reset_ports_cursor();
+                self.scan_config.ports_input.clear();
             }
             SelectedField::Options => {
                 // TODO: Start scan

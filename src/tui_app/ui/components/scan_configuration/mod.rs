@@ -3,7 +3,7 @@
 //! This module contains all components and layout logic for the scan configuration section.
 //! It handles targets, ports, and options input with proper layout management.
 
-use crate::tui::state::AppState;
+use crate::tui_app::AppState;
 use ratatui::{layout::Rect, Frame};
 
 pub mod layout;

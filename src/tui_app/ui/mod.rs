@@ -3,7 +3,7 @@
 //! This module handles all UI rendering using a component-based architecture.
 //! Each component is responsible for rendering a specific part of the interface.
 
-use crate::tui::state::AppState;
+use crate::tui_app::AppState;
 use ratatui::Frame;
 
 pub mod components;

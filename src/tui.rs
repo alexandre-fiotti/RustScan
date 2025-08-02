@@ -2,12 +2,6 @@
 
 /// Terminal User Interface Module for RustScan
 /// Defines macros to use
-mod app;
-mod events;
-mod state;
-mod ui;
-
-pub use app::TuiApp;
 
 #[macro_export]
 macro_rules! warning {

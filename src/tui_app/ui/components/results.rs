@@ -9,8 +9,8 @@ use ratatui::{
     Frame,
 };
 
-use crate::tui::state::AppState;
-use crate::tui::ui::theme::{normal_text_style, text, title_style};
+use crate::tui_app::ui::theme::{normal_text_style, text, title_style};
+use crate::tui_app::AppState;
 
 /// Component for displaying scan results
 #[derive(Default)]

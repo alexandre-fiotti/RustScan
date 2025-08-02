@@ -10,7 +10,7 @@ use ratatui::{
     Frame,
 };
 
-use crate::tui::ui::theme::text;
+use crate::tui_app::ui::theme::text;
 
 /// Component for displaying the header banner
 #[derive(Default)]

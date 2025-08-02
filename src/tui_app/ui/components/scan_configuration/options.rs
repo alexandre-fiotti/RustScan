@@ -10,8 +10,10 @@ use ratatui::{
     Frame,
 };
 
-use crate::tui::state::{AppState, SelectedField};
-use crate::tui::ui::theme::{active_style, border_normal, normal_text_style, text, title_style};
+use crate::tui_app::ui::theme::{
+    active_style, border_normal, normal_text_style, text, title_style,
+};
+use crate::tui_app::{AppState, SelectedField};
 
 /// Component for managing scan options
 #[derive(Default)]

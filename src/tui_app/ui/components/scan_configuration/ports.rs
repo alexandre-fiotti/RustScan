@@ -10,10 +10,10 @@ use ratatui::{
     Frame,
 };
 
-use crate::tui::state::{AppState, SelectedField};
-use crate::tui::ui::theme::{
+use crate::tui_app::ui::theme::{
     active_style, border_normal, normal_text_style, placeholder_style, text, title_style,
 };
+use crate::tui_app::{AppState, SelectedField};
 
 /// Component for managing port selection
 #[derive(Default)]
@@ -27,7 +27,7 @@ impl PortsComponent {
 
         // Show input buffer if editing, otherwise show confirmed ports or placeholder
         let display_text = if !config.ports_input.is_empty() {
-            config.ports_input.clone()
+            config.ports_input.text().to_string()
         } else if let Some(ports) = &config.ports {
             ports.clone()
         } else {
@@ -59,7 +59,7 @@ impl PortsComponent {
         // Set cursor position if this field is selected and we're editing
         if is_selected && !config.ports_input.is_empty() {
             f.set_cursor_position(Position::new(
-                area.x + config.ports_cursor as u16 + 2,
+                area.x + config.ports_input.cursor() as u16 + 2,
                 area.y + 1,
             ));
         }

@@ -9,7 +9,7 @@ use ratatui::{
     Frame,
 };
 
-use crate::tui::ui::theme::{layout, text, title_style};
+use crate::tui_app::ui::theme::{layout, text, title_style};
 
 /// Layout utilities for the scan configuration section
 pub struct ScanConfigLayout;

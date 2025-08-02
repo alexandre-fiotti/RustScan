@@ -6,7 +6,7 @@
 use crossterm::event::{Event, KeyCode, KeyEventKind, KeyModifiers};
 use std::io;
 
-use crate::tui::state::AppState;
+use crate::tui_app::AppState;
 
 /// Event handler for TUI input processing
 pub struct EventHandler;
@@ -55,7 +55,10 @@ impl EventHandler {
                         state.confirm_input();
                     }
                     KeyCode::Backspace => {
-                        state.remove_char();
+                        state.remove_previous_char();
+                    }
+                    KeyCode::Delete => {
+                        state.remove_next_char();
                     }
                     KeyCode::Char(c) if !key.modifiers.contains(KeyModifiers::CONTROL) => {
                         state.add_char(c);
