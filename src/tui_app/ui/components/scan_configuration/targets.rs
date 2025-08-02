@@ -11,8 +11,8 @@ use ratatui::{
 };
 
 use crate::tui_app::ui::theme::{
-    active_style, border_hovered_style, border_normal, normal_text_style, placeholder_style, text,
-    title_hovered_style, title_selected_style, title_unselected_style,
+    active_style, border_normal, normal_text_style, placeholder_style, text, title_selected_style,
+    title_unselected_style,
 };
 use crate::tui_app::{AppState, SelectedField};
 
@@ -23,11 +23,8 @@ pub struct TargetsComponent;
 impl TargetsComponent {
     /// Render the targets configuration section
     pub fn render(&self, f: &mut Frame, area: Rect, state: &AppState) {
-        use crate::tui_app::state::HoveredField;
-
         let config = state.scan_config();
         let is_selected = matches!(state.selected_field(), SelectedField::Targets);
-        let is_hovered = matches!(state.hovered_field(), HoveredField::Targets);
 
         // Show input buffer if editing, otherwise show confirmed targets
         let display_text = if !config.targets_input.is_empty() {
@@ -44,11 +41,9 @@ impl TargetsComponent {
             placeholder_style()
         };
 
-        // Choose border and title styles based on selection and hover state
+        // Choose border and title styles based on selection state only
         let (border_style, title_style) = if is_selected {
             (active_style(), title_selected_style())
-        } else if is_hovered {
-            (border_hovered_style(), title_hovered_style())
         } else {
             (
                 Style::default().fg(border_normal()),

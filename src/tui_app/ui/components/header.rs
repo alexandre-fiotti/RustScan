@@ -11,27 +11,36 @@ use ratatui::{
 };
 
 use crate::tui_app::ui::theme::text;
+use crate::tui_app::AppState;
 
 /// Component for displaying the header banner
 #[derive(Default)]
 pub struct HeaderComponent;
 
 impl HeaderComponent {
-    /// Render the RustScan banner with gradient colors
-    pub fn render(&self, f: &mut Frame, area: Rect) {
+    /// Render the RustScan banner with gradient colors or collapsed text
+    pub fn render(&self, f: &mut Frame, area: Rect, state: &AppState) {
         let width = area.width as usize;
 
-        let banner_lines: Vec<Line> = text::ASCII_LINES
-            .iter()
-            .map(|line| Self::create_gradient_line(line, width))
-            .chain(std::iter::once(Self::create_gradient_line(
-                text::BANNER_SUBTITLE,
-                width,
-            )))
-            .collect();
+        if state.is_banner_collapsed() {
+            // Render collapsed banner - just "RUSTSCAN" centered
+            let collapsed_line = Self::create_gradient_line(text::COLLAPSED_BANNER, width);
+            let banner = Paragraph::new(vec![collapsed_line]);
+            f.render_widget(banner, area);
+        } else {
+            // Render full banner
+            let banner_lines: Vec<Line> = text::ASCII_LINES
+                .iter()
+                .map(|line| Self::create_gradient_line(line, width))
+                .chain(std::iter::once(Self::create_gradient_line(
+                    text::BANNER_SUBTITLE,
+                    width,
+                )))
+                .collect();
 
-        let banner = Paragraph::new(banner_lines);
-        f.render_widget(banner, area);
+            let banner = Paragraph::new(banner_lines);
+            f.render_widget(banner, area);
+        }
     }
 
     /// Create a line with gradient coloring and proper centering

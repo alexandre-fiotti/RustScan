@@ -26,8 +26,8 @@ pub struct UIComponents {
 
 impl UIComponents {
     /// Render the header section
-    pub fn render_header(&self, f: &mut Frame, area: Rect) {
-        self.header.render(f, area);
+    pub fn render_header(&self, f: &mut Frame, area: Rect, state: &AppState) {
+        self.header.render(f, area, state);
     }
 
     /// Render the scan configuration section

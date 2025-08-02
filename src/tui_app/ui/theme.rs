@@ -43,11 +43,11 @@ pub const fn border_normal() -> Color {
 
 // === Common Styles ===
 
-/// Style for main section titles (always green and bold)
+/// Style for main section titles (white and bold)
 /// Used for major sections like "Scan Configuration" and "Scan Results"
 pub fn section_title_style() -> Style {
     Style::default()
-        .fg(primary_green())
+        .fg(text_primary())
         .add_modifier(Modifier::BOLD)
 }
 
@@ -105,8 +105,11 @@ pub fn link_style() -> Style {
 pub mod layout {
     // === Section Heights ===
 
-    /// Height of the header/banner section
+    /// Height of the header/banner section when expanded
     pub const HEADER_HEIGHT: u16 = 5;
+
+    /// Height of the header/banner section when collapsed
+    pub const HEADER_HEIGHT_COLLAPSED: u16 = 1;
 
     /// Height of the footer section
     pub const FOOTER_HEIGHT: u16 = 1;
@@ -139,6 +142,9 @@ pub mod text {
 
     /// Banner subtitle
     pub const BANNER_SUBTITLE: &str = "The Modern Day Port Scanner";
+
+    /// Collapsed banner text
+    pub const COLLAPSED_BANNER: &str = "RUSTSCAN";
 
     // === Section Titles ===
 

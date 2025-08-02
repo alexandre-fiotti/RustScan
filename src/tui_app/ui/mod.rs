@@ -22,10 +22,10 @@ impl UI {
     /// Render the entire UI
     pub fn render(&self, f: &mut Frame, state: &AppState) {
         // Create main layout: banner + content + footer
-        let main_chunks = layout::Layout::main_layout(f.area());
+        let main_chunks = layout::Layout::main_layout(f.area(), state);
 
         // Render header banner
-        self.components.render_header(f, main_chunks[0]);
+        self.components.render_header(f, main_chunks[0], state);
 
         // Create two-section layout: config (top) + results (bottom)
         let content_chunks = layout::Layout::two_section_layout(main_chunks[1]);

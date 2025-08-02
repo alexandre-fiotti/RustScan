@@ -9,6 +9,7 @@ use crate::tui_app::models::{OutputBuffer, TextInput};
 /// Which input field is currently selected
 #[derive(Debug, Clone, PartialEq)]
 pub enum SelectedField {
+    None,
     Targets,
     Ports,
     Options,
@@ -66,6 +67,8 @@ pub struct AppState {
     hovered_field: HoveredField,
     /// Terminal output buffer for displaying all output
     output_buffer: OutputBuffer,
+    /// Whether the banner is collapsed to a single line
+    banner_collapsed: bool,
 }
 
 impl AppState {
@@ -75,9 +78,10 @@ impl AppState {
             should_quit: false,
             opts: Opts::default(),
             scan_config: ScanConfig::default(),
-            selected_field: SelectedField::Targets,
+            selected_field: SelectedField::None,
             hovered_field: HoveredField::None,
             output_buffer: OutputBuffer::new(),
+            banner_collapsed: false,
         }
     }
 
@@ -121,9 +125,15 @@ impl AppState {
         self.selected_field = field;
     }
 
+    /// Deselect all components
+    pub fn deselect_all(&mut self) {
+        self.selected_field = SelectedField::None;
+    }
+
     /// Navigate to next field
     pub fn next_field(&mut self) {
         self.selected_field = match self.selected_field {
+            SelectedField::None => SelectedField::Targets, // Arrow down from no selection goes to top (Targets)
             SelectedField::Targets => SelectedField::Ports,
             SelectedField::Ports => SelectedField::Options,
             SelectedField::Options => SelectedField::Targets,
@@ -133,6 +143,7 @@ impl AppState {
     /// Navigate to previous field  
     pub fn prev_field(&mut self) {
         self.selected_field = match self.selected_field {
+            SelectedField::None => SelectedField::Options, // Arrow up from no selection goes to bottom (Options)
             SelectedField::Targets => SelectedField::Options,
             SelectedField::Ports => SelectedField::Targets,
             SelectedField::Options => SelectedField::Ports,
@@ -142,6 +153,9 @@ impl AppState {
     /// Add character to currently selected input field
     pub fn add_char(&mut self, c: char) {
         match self.selected_field {
+            SelectedField::None => {
+                // Do nothing when no field is selected
+            }
             SelectedField::Targets => {
                 self.scan_config.targets_input.insert_char(c);
             }
@@ -157,6 +171,9 @@ impl AppState {
     /// Remove last character from currently selected input field
     pub fn remove_previous_char(&mut self) {
         match self.selected_field {
+            SelectedField::None => {
+                // Do nothing when no field is selected
+            }
             SelectedField::Targets => {
                 self.scan_config.targets_input.remove_previous_char();
             }
@@ -172,6 +189,9 @@ impl AppState {
     /// Remove next character from currently selected input field
     pub fn remove_next_char(&mut self) {
         match self.selected_field {
+            SelectedField::None => {
+                // Do nothing when no field is selected
+            }
             SelectedField::Targets => {
                 self.scan_config.targets_input.remove_next_char();
             }
@@ -187,6 +207,9 @@ impl AppState {
     /// Delete previous word from currently selected input field (Ctrl+Backspace)
     pub fn delete_previous_word(&mut self) {
         match self.selected_field {
+            SelectedField::None => {
+                // Do nothing when no field is selected
+            }
             SelectedField::Targets => {
                 self.scan_config.targets_input.delete_previous_word();
             }
@@ -202,6 +225,9 @@ impl AppState {
     /// Delete next word from currently selected input field (Alt+Delete)
     pub fn delete_next_word(&mut self) {
         match self.selected_field {
+            SelectedField::None => {
+                // Do nothing when no field is selected
+            }
             SelectedField::Targets => {
                 self.scan_config.targets_input.delete_next_word();
             }
@@ -217,6 +243,9 @@ impl AppState {
     /// Move cursor to previous word in current field (Ctrl+Left)
     pub fn move_cursor_to_previous_word(&mut self) {
         match self.selected_field {
+            SelectedField::None => {
+                // Do nothing when no field is selected
+            }
             SelectedField::Targets => {
                 self.scan_config
                     .targets_input
@@ -232,6 +261,9 @@ impl AppState {
     /// Move cursor to next word in current field (Ctrl+Right)
     pub fn move_cursor_to_next_word(&mut self) {
         match self.selected_field {
+            SelectedField::None => {
+                // Do nothing when no field is selected
+            }
             SelectedField::Targets => {
                 self.scan_config.targets_input.move_cursor_to_next_word();
             }
@@ -245,6 +277,9 @@ impl AppState {
     /// Move cursor left in current field
     pub fn move_cursor_left(&mut self) {
         match self.selected_field {
+            SelectedField::None => {
+                // Do nothing when no field is selected
+            }
             SelectedField::Targets => {
                 self.scan_config.targets_input.move_cursor_left();
             }
@@ -258,6 +293,9 @@ impl AppState {
     /// Move cursor right in current field
     pub fn move_cursor_right(&mut self) {
         match self.selected_field {
+            SelectedField::None => {
+                // Do nothing when no field is selected
+            }
             SelectedField::Targets => {
                 self.scan_config.targets_input.move_cursor_right();
             }
@@ -271,6 +309,9 @@ impl AppState {
     /// Confirm input for currently selected field
     pub fn confirm_input(&mut self) {
         match self.selected_field {
+            SelectedField::None => {
+                // Do nothing when no field is selected
+            }
             SelectedField::Targets => {
                 if !self.scan_config.targets_input.is_empty() {
                     self.scan_config.targets = self
@@ -316,6 +357,16 @@ impl AppState {
     /// Set the hovered field
     pub fn set_hovered_field(&mut self, field: HoveredField) {
         self.hovered_field = field;
+    }
+
+    /// Get whether the banner is collapsed
+    pub fn is_banner_collapsed(&self) -> bool {
+        self.banner_collapsed
+    }
+
+    /// Toggle the banner collapsed state
+    pub fn toggle_banner_collapsed(&mut self) {
+        self.banner_collapsed = !self.banner_collapsed;
     }
 }
 

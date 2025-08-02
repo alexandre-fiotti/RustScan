@@ -27,10 +27,7 @@ impl ResultsComponent {
         let scroll_info = state.output_buffer().scroll_info(area.height as usize);
 
         // Convert strings to ratatui Lines
-        let text_lines: Vec<Line> = output_lines
-            .into_iter()
-            .map(|line| Line::from(line))
-            .collect();
+        let text_lines: Vec<Line> = output_lines.into_iter().map(Line::from).collect();
 
         // Create title with scroll indicator
         let title = if scroll_info.total_lines > 0 {

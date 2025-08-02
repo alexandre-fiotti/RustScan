@@ -129,16 +129,18 @@ impl EventHandler {
                         state.remove_next_char();
                     }
                 }
-                KeyCode::Char(c) if key.modifiers.is_empty() => {
-                    state.add_char(c);
-                }
+                // Simple alternative key combinations
                 KeyCode::Char('w') if key.modifiers == KeyModifiers::CONTROL => {
-                    // Ctrl+W (which is Ctrl+Backspace on many terminals): delete previous word
+                    // Ctrl+W: delete previous word
                     state.delete_previous_word();
                 }
                 KeyCode::Char('d') if key.modifiers == KeyModifiers::CONTROL => {
-                    // Ctrl+D (which is Ctrl+Delete on many terminals): delete next word
+                    // Ctrl+D: delete next word
                     state.delete_next_word();
+                }
+                // Handle character input
+                KeyCode::Char(c) if key.modifiers.is_empty() => {
+                    state.add_char(c);
                 }
 
                 _ => {}
@@ -164,50 +166,36 @@ impl EventHandler {
                 // Handle left mouse click for component selection
                 self.handle_component_click(state, mouse.column, mouse.row);
             }
-            MouseEventKind::Moved => {
-                // Handle mouse movement for hover effects
-                self.handle_mouse_hover(state, mouse.column, mouse.row);
-            }
+            // Removed mouse movement tracking to prevent any interference
             _ => {}
         }
         Ok(())
     }
 
-    /// Handle mouse movement to provide hover feedback
-    fn handle_mouse_hover(&self, state: &mut AppState, _column: u16, row: u16) {
-        use crate::tui_app::state::HoveredField;
-
-        // Calculate component positions using theme constants
-        let scan_config_inner_start = layout::HEADER_HEIGHT + 1 + layout::STANDARD_MARGIN;
-
-        if row >= scan_config_inner_start {
-            let relative_row = row - scan_config_inner_start;
-            let component_index = relative_row / layout::INPUT_COMPONENT_HEIGHT;
-
-            let hovered_field = match component_index {
-                0 => HoveredField::Targets,
-                1 => HoveredField::Ports,
-                2 => HoveredField::Options,
-                _ => HoveredField::None, // Outside component area
-            };
-
-            state.set_hovered_field(hovered_field);
-        } else {
-            // Outside scan config area
-            state.set_hovered_field(HoveredField::None);
-        }
-    }
-
     /// Handle mouse click to select components
     fn handle_component_click(&self, state: &mut AppState, _column: u16, row: u16) {
-        // Calculate component positions using theme constants
+        // Get current header height based on collapse state
+        let current_header_height = if state.is_banner_collapsed() {
+            layout::HEADER_HEIGHT_COLLAPSED
+        } else {
+            layout::HEADER_HEIGHT
+        };
+
+        // Check if click is in header area
+        if row < current_header_height {
+            // Click on header - toggle banner collapsed state
+            state.toggle_banner_collapsed();
+            return;
+        }
+
+        // Calculate component positions using dynamic header height
         // Layout structure:
-        // - Header: layout::HEADER_HEIGHT
+        // - Header: current_header_height (dynamic)
         // - Scan config section border: 1 line
         // - Scan config internal margin: layout::STANDARD_MARGIN
         // - Each component: layout::INPUT_COMPONENT_HEIGHT
 
-        let scan_config_inner_start = layout::HEADER_HEIGHT + 1 + layout::STANDARD_MARGIN;
+        let scan_config_inner_start = current_header_height + 1 + layout::STANDARD_MARGIN;
 
         if row >= scan_config_inner_start {
             let relative_row = row - scan_config_inner_start;
@@ -222,7 +210,13 @@ impl EventHandler {
 
             if let Some(field) = new_field {
                 state.set_selected_field(field);
+            } else {
+                // Click outside component area - deselect
+                state.deselect_all();
             }
+        } else {
+            // Click outside scan config area - deselect
+            state.deselect_all();
         }
     }
 }
