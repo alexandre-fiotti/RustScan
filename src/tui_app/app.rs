@@ -9,7 +9,11 @@ use crossterm::{
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
 use ratatui::{backend::CrosstermBackend, Terminal};
-use std::io;
+use std::{
+    io::{self, Write},
+    thread,
+    time::Duration,
+};
 
 use crate::tui_app::{
     ui::components::scan_results::init_tui_output_capture, ui::UI, AppState, EventHandler,
@@ -65,14 +69,26 @@ impl TuiApp {
         // Run the app
         let res = run_app(&mut terminal, &mut app);
 
-        // Restore terminal
+        // Restore terminal - more thorough cleanup
         disable_raw_mode()?;
+
+        // Clear any pending input/mouse events before disabling mouse capture
+        while event::poll(Duration::from_millis(0))? {
+            let _ = event::read()?; // Drain the event queue
+        }
+
         execute!(
             terminal.backend_mut(),
             LeaveAlternateScreen,
             DisableMouseCapture
         )?;
         terminal.show_cursor()?;
+
+        // Ensure all terminal commands are flushed
+        terminal.backend_mut().flush()?;
+
+        // Small delay to let terminal process the disable commands
+        thread::sleep(Duration::from_millis(50));
 
         if let Err(err) = res {
             println!("{err:?}");

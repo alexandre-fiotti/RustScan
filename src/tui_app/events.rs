@@ -138,6 +138,19 @@ impl EventHandler {
                     // Ctrl+D: delete next word
                     state.delete_next_word();
                 }
+                // Handle terminals that send raw ASCII codes for Ctrl+Backspace/Delete
+                KeyCode::Char('\u{08}') => {
+                    // ASCII BS (backspace) - some terminals send this for Ctrl+Backspace
+                    state.delete_previous_word();
+                }
+                KeyCode::Char('\u{7f}') => {
+                    // ASCII DEL - some terminals send this for Ctrl+Delete
+                    state.delete_next_word();
+                }
+                KeyCode::Char('h') if key.modifiers == KeyModifiers::CONTROL => {
+                    // Ctrl+H - some terminals send this for Ctrl+Backspace
+                    state.delete_previous_word();
+                }
                 // Handle character input
                 KeyCode::Char(c) if key.modifiers.is_empty() => {
                     state.add_char(c);
