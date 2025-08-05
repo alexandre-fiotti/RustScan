@@ -9,11 +9,13 @@ use ratatui::{layout::Rect, Frame};
 pub mod layout;
 pub mod options;
 pub mod ports;
+pub mod scan_button;
 pub mod targets;
 
 use layout::ScanConfigLayout;
 use options::OptionsComponent;
 use ports::PortsComponent;
+use scan_button::ScanButtonComponent;
 use targets::TargetsComponent;
 
 /// Coordinator for scan configuration components
@@ -22,6 +24,7 @@ pub struct ScanConfigurationComponents {
     targets: TargetsComponent,
     ports: PortsComponent,
     options: OptionsComponent,
+    scan_button: ScanButtonComponent,
 }
 
 impl ScanConfigurationComponents {
@@ -37,5 +40,10 @@ impl ScanConfigurationComponents {
         self.targets.render(f, chunks[0], state);
         self.ports.render(f, chunks[1], state);
         self.options.render(f, chunks[2], state);
+
+        // Render button in the bottom action area
+        let action_chunks = ScanConfigLayout::bottom_action_area(chunks[3]);
+        self.scan_button
+            .render(f, action_chunks[1], &state.scan_button_state());
     }
 }

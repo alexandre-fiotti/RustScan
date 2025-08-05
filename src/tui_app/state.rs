@@ -5,6 +5,7 @@
 
 use crate::input::Opts;
 use crate::tui_app::models::{OutputBuffer, TextInput};
+use crate::tui_app::ui::components::scan_configuration::scan_button::State as ScanButtonState;
 
 /// Which input field is currently selected
 #[derive(Debug, Clone, PartialEq)]
@@ -13,6 +14,7 @@ pub enum SelectedField {
     Targets,
     Ports,
     Options,
+    ScanButton,
 }
 
 /// Which component is currently being hovered over by the mouse
@@ -22,6 +24,7 @@ pub enum HoveredField {
     Targets,
     Ports,
     Options,
+    ScanButton,
 }
 
 /// Simple scan configuration state
@@ -69,6 +72,8 @@ pub struct AppState {
     output_buffer: OutputBuffer,
     /// Whether the banner is collapsed to a single line
     banner_collapsed: bool,
+    /// Whether the scan button is currently being pressed (active state)
+    scan_button_state: ScanButtonState,
 }
 
 impl AppState {
@@ -82,6 +87,7 @@ impl AppState {
             hovered_field: HoveredField::None,
             output_buffer: OutputBuffer::new(),
             banner_collapsed: false,
+            scan_button_state: ScanButtonState::default(),
         }
     }
 
@@ -120,14 +126,31 @@ impl AppState {
         &self.selected_field
     }
 
+    /// Get the scan button state
+    pub fn scan_button_state(&self) -> &ScanButtonState {
+        &self.scan_button_state
+    }
+
+    /// Set the scan button state
+    pub fn set_scan_button_state(&mut self, state: ScanButtonState) {
+        self.scan_button_state = state;
+    }
+
     /// Set the selected field
     pub fn set_selected_field(&mut self, field: SelectedField) {
         self.selected_field = field;
+        match self.selected_field {
+            SelectedField::ScanButton => {
+                self.scan_button_state = ScanButtonState::Selected;
+            }
+            _ => {}
+        }
     }
 
     /// Deselect all components
     pub fn deselect_all(&mut self) {
         self.selected_field = SelectedField::None;
+        self.scan_button_state = ScanButtonState::Normal;
     }
 
     /// Navigate to next field
@@ -136,17 +159,19 @@ impl AppState {
             SelectedField::None => SelectedField::Targets, // Arrow down from no selection goes to top (Targets)
             SelectedField::Targets => SelectedField::Ports,
             SelectedField::Ports => SelectedField::Options,
-            SelectedField::Options => SelectedField::Targets,
+            SelectedField::Options => SelectedField::ScanButton,
+            SelectedField::ScanButton => SelectedField::Targets,
         };
     }
 
     /// Navigate to previous field  
     pub fn prev_field(&mut self) {
         self.selected_field = match self.selected_field {
-            SelectedField::None => SelectedField::Options, // Arrow up from no selection goes to bottom (Options)
-            SelectedField::Targets => SelectedField::Options,
+            SelectedField::None => SelectedField::ScanButton, // Arrow up from no selection goes to bottom (Button)
+            SelectedField::Targets => SelectedField::ScanButton,
             SelectedField::Ports => SelectedField::Targets,
             SelectedField::Options => SelectedField::Ports,
+            SelectedField::ScanButton => SelectedField::Options,
         };
     }
 
@@ -165,6 +190,7 @@ impl AppState {
             SelectedField::Options => {
                 // TODO: Implement options functionality later
             }
+            _ => {}
         }
     }
 
@@ -183,6 +209,7 @@ impl AppState {
             SelectedField::Options => {
                 // TODO: Implement options functionality later
             }
+            _ => {}
         }
     }
 
@@ -201,6 +228,7 @@ impl AppState {
             SelectedField::Options => {
                 // TODO: Implement options functionality later
             }
+            _ => {}
         }
     }
 
@@ -219,6 +247,7 @@ impl AppState {
             SelectedField::Options => {
                 // TODO: Implement options functionality later
             }
+            _ => {}
         }
     }
 
@@ -237,6 +266,7 @@ impl AppState {
             SelectedField::Options => {
                 // TODO: Implement options functionality later
             }
+            _ => {}
         }
     }
 
@@ -255,6 +285,7 @@ impl AppState {
                 self.scan_config.ports_input.move_cursor_to_previous_word();
             }
             SelectedField::Options => {}
+            _ => {}
         }
     }
 
@@ -271,6 +302,7 @@ impl AppState {
                 self.scan_config.ports_input.move_cursor_to_next_word();
             }
             SelectedField::Options => {}
+            _ => {}
         }
     }
 
@@ -287,6 +319,7 @@ impl AppState {
                 self.scan_config.ports_input.move_cursor_left();
             }
             SelectedField::Options => {}
+            _ => {}
         }
     }
 
@@ -303,6 +336,7 @@ impl AppState {
                 self.scan_config.ports_input.move_cursor_right();
             }
             SelectedField::Options => {}
+            _ => {}
         }
     }
 
@@ -334,9 +368,18 @@ impl AppState {
                 self.scan_config.ports_input.clear();
             }
             SelectedField::Options => {
-                // TODO: Implement scan start functionality later
+                // TODO: Implement options functionality later
+            }
+            SelectedField::ScanButton => {
+                // Scan button activation is now handled in the event handler
+                // This case should not be reached anymore
             }
         }
+    }
+
+    /// Start a scan with current configuration
+    pub fn start_scan(&mut self) {
+        // TODO: Implement actual scan functionality
     }
 
     /// Get reference to the output buffer

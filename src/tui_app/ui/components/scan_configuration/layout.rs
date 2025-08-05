@@ -29,12 +29,21 @@ impl ScanConfigLayout {
     pub fn internal_layout(area: Rect) -> Vec<Rect> {
         RatatuiLayout::default()
             .direction(Direction::Vertical)
-            .margin(layout::STANDARD_MARGIN)
+            .horizontal_margin(layout::HORIZONTAL_MARGIN)
             .constraints([
                 Constraint::Length(layout::INPUT_COMPONENT_HEIGHT), // Targets
                 Constraint::Length(layout::INPUT_COMPONENT_HEIGHT), // Ports
                 Constraint::Length(layout::INPUT_COMPONENT_HEIGHT), // Options
+                Constraint::Length(layout::BUTTON_HEIGHT),          // Button
             ])
+            .split(area)
+            .to_vec()
+    }
+
+    pub fn bottom_action_area(area: Rect) -> Vec<Rect> {
+        RatatuiLayout::default()
+            .direction(Direction::Horizontal)
+            .constraints([Constraint::Min(0), Constraint::Length(layout::BUTTON_WIDTH)])
             .split(area)
             .to_vec()
     }

@@ -101,6 +101,63 @@ pub fn link_style() -> Style {
     Style::default().fg(primary_blue())
 }
 
+// === Button Theme Functions ===
+
+// Normal state
+pub fn button_normal_background() -> Style {
+    Style::default().bg(primary_blue()).fg(Color::Black)
+}
+
+pub fn button_normal_highlight() -> Style {
+    Style::default()
+        .bg(primary_blue())
+        .fg(Color::Rgb(80, 180, 255))
+}
+
+pub fn button_normal_shadow() -> Style {
+    Style::default()
+        .bg(primary_blue())
+        .fg(Color::Rgb(0, 100, 200))
+}
+
+// Selected state
+pub fn button_selected_background() -> Style {
+    Style::default()
+        .bg(Color::Rgb(0, 120, 220))
+        .fg(Color::White)
+}
+
+pub fn button_selected_highlight() -> Style {
+    Style::default()
+        .bg(Color::Rgb(0, 120, 220))
+        .fg(Color::Rgb(100, 190, 255))
+}
+
+pub fn button_selected_shadow() -> Style {
+    Style::default()
+        .bg(Color::Rgb(0, 120, 220))
+        .fg(Color::Rgb(0, 90, 180))
+}
+
+// Active state
+pub fn button_active_background() -> Style {
+    Style::default()
+        .bg(Color::Rgb(0, 100, 180))
+        .fg(Color::White)
+}
+
+pub fn button_active_highlight() -> Style {
+    Style::default()
+        .bg(Color::Rgb(0, 100, 180))
+        .fg(Color::Rgb(0, 80, 160))
+}
+
+pub fn button_active_shadow() -> Style {
+    Style::default()
+        .bg(Color::Rgb(0, 100, 180))
+        .fg(Color::Rgb(100, 180, 255))
+}
+
 /// Layout constants used throughout the TUI
 pub mod layout {
     // === Section Heights ===
@@ -115,17 +172,26 @@ pub mod layout {
     pub const FOOTER_HEIGHT: u16 = 1;
 
     /// Height of the scan configuration section
-    pub const SCAN_CONFIG_HEIGHT: u16 = 14;
+    pub const SCAN_CONFIG_HEIGHT: u16 = 12;
 
     // === Component Heights ===
 
     /// Height of individual input components (targets, ports, options)
     pub const INPUT_COMPONENT_HEIGHT: u16 = 3;
 
+    /// Height of buttons
+    pub const BUTTON_HEIGHT: u16 = 1;
+
+    /// Width of buttons
+    pub const BUTTON_WIDTH: u16 = 10;
+
     // === Margins and Padding ===
 
     /// Standard margin for internal layouts
     pub const STANDARD_MARGIN: u16 = 1;
+
+    /// Horizontal margin for internal layouts
+    pub const HORIZONTAL_MARGIN: u16 = 1;
 }
 
 /// Text constants used throughout the TUI

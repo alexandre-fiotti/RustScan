@@ -6,9 +6,9 @@
 use crossterm::event::{Event, KeyCode, KeyEventKind, KeyModifiers, MouseEventKind};
 use std::io;
 
+use crate::tui_app::ui::components::scan_configuration::scan_button::State as ScanButtonState;
 use crate::tui_app::ui::theme::layout;
 use crate::tui_app::{AppState, SelectedField};
-
 /// Event handler for TUI input processing
 pub struct EventHandler;
 
@@ -109,7 +109,18 @@ impl EventHandler {
 
                 // Input handling
                 KeyCode::Enter => {
-                    state.confirm_input();
+                    match state.selected_field() {
+                        SelectedField::ScanButton => {
+                            // Activate and immediately trigger scan for better compatibility
+                            state.set_scan_button_state(ScanButtonState::Active);
+                            std::thread::sleep(std::time::Duration::from_millis(200));
+                            state.set_scan_button_state(ScanButtonState::Normal);
+                        }
+                        _ => {
+                            // For other fields, use the existing confirm_input logic
+                            state.confirm_input();
+                        }
+                    }
                 }
                 KeyCode::Backspace => {
                     if key.modifiers == KeyModifiers::CONTROL {
@@ -179,7 +190,6 @@ impl EventHandler {
                 // Handle left mouse click for component selection
                 self.handle_component_click(state, mouse.column, mouse.row);
             }
-            // Removed mouse movement tracking to prevent any interference
             _ => {}
         }
         Ok(())
@@ -205,15 +215,29 @@ impl EventHandler {
         // Layout structure:
         // - Header: current_header_height (dynamic)
         // - Scan config section border: 1 line
-        // - Scan config internal margin: layout::STANDARD_MARGIN
         // - Each component: layout::INPUT_COMPONENT_HEIGHT
+        // - Button: layout::BUTTON_HEIGHT
 
-        let scan_config_inner_start = current_header_height + 1 + layout::STANDARD_MARGIN;
+        let scan_config_inner_start = current_header_height + 1;
 
         if row >= scan_config_inner_start {
             let relative_row = row - scan_config_inner_start;
-            let component_index = relative_row / layout::INPUT_COMPONENT_HEIGHT;
 
+            // Check if click is in button area (bottom right)
+            let button_start_row = layout::INPUT_COMPONENT_HEIGHT * 3; // After 3 input components
+
+            if relative_row >= button_start_row
+                && relative_row < button_start_row + layout::BUTTON_HEIGHT
+            {
+                // Click in button area - activate the button (don't trigger scan yet)
+                state.set_scan_button_state(ScanButtonState::Active);
+                std::thread::sleep(std::time::Duration::from_millis(200));
+                state.set_scan_button_state(ScanButtonState::Normal);
+                return;
+            }
+
+            // Check for input component clicks
+            let component_index = relative_row / layout::INPUT_COMPONENT_HEIGHT;
             let new_field = match component_index {
                 0 => Some(SelectedField::Targets),
                 1 => Some(SelectedField::Ports),
