@@ -9,6 +9,7 @@ use ratatui::Frame;
 pub mod components;
 pub mod layout;
 pub mod theme;
+pub mod widgets;
 
 use components::UIComponents;
 

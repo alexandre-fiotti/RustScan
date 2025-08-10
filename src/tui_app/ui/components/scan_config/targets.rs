@@ -2,20 +2,12 @@
 //!
 //! This component handles displaying and managing target configuration.
 
-use ratatui::{
-    layout::{Position, Rect},
-    style::Style,
-    text::Span,
-    widgets::{Block, Borders, Paragraph},
-    Frame,
-};
+use ratatui::{layout::Rect, Frame};
 
 use crate::tui_app::model::Model;
 use crate::tui_app::scan_config::SelectedField;
-use crate::tui_app::ui::theme::{
-    active_style, normal_text_style, placeholder_style, text, title_selected_style,
-    title_unselected_style, BORDER_NORMAL,
-};
+use crate::tui_app::ui::theme::text;
+use crate::tui_app::ui::widgets::text_input::TextInputWidget;
 
 /// Component for managing scan targets
 #[derive(Default)]
@@ -27,44 +19,14 @@ impl TargetsComponent {
         let config = state.scan_config();
         let is_selected = matches!(state.scan_config().selected_field, SelectedField::Targets);
 
-        // Show input buffer if editing, otherwise show confirmed targets
-        let display_text = if !config.targets_input.is_empty() {
-            config.targets_input.text().to_string()
-        } else if !config.targets.is_empty() {
-            config.targets.join(", ")
-        } else {
-            text::TARGETS_PLACEHOLDER.to_string()
-        };
-
-        let style = if !config.targets_input.is_empty() || !config.targets.is_empty() {
-            normal_text_style()
-        } else {
-            placeholder_style()
-        };
-
-        // Choose border and title styles based on selection state only
-        let (border_style, title_style) = if is_selected {
-            (active_style(), title_selected_style())
-        } else {
-            (Style::default().fg(BORDER_NORMAL), title_unselected_style())
-        };
-
-        let widget = Paragraph::new(display_text).style(style).block(
-            Block::default()
-                .borders(Borders::ALL)
-                .title(Span::styled(text::TARGETS_TITLE, title_style))
-                .border_style(border_style)
-                .padding(ratatui::widgets::Padding::horizontal(1)),
-        );
-
-        f.render_widget(widget, area);
-
-        // Set cursor position when this field is selected
-        if is_selected {
-            f.set_cursor_position(Position::new(
-                area.x + config.targets_input.cursor() as u16 + 2,
-                area.y + 1,
-            ));
-        }
+        let confirmed = (!config.targets.is_empty()).then(|| config.targets.join(", "));
+        TextInputWidget::from_model(
+            text::TARGETS_TITLE,
+            &config.targets_input,
+            confirmed,
+            is_selected,
+            text::TARGETS_PLACEHOLDER,
+        )
+        .render(f, area);
     }
 }

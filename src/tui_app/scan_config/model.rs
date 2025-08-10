@@ -1,7 +1,6 @@
 use std::time::{Duration, Instant};
 
-use crate::tui_app::shared::TextInput;
-use crate::tui_app::ui::components::scan_config::scan_button::State as ScanButtonState;
+use crate::tui_app::shared::{button_mode::ButtonMode as ScanButtonMode, TextInput};
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum SelectedField {
@@ -21,9 +20,9 @@ pub struct ScanConfig {
     pub targets_input: TextInput,
     pub ports_input: TextInput,
     pub selected_field: SelectedField,
-    pub scan_button_state: ScanButtonState,
+    pub scan_button_mode: ScanButtonMode,
     pub button_activation_until: Option<Instant>,
-    pub button_restore_state: Option<ScanButtonState>,
+    pub button_restore_mode: Option<ScanButtonMode>,
 }
 
 impl Default for ScanConfig {
@@ -36,9 +35,9 @@ impl Default for ScanConfig {
             targets_input: TextInput::new(),
             ports_input: TextInput::new(),
             selected_field: SelectedField::None,
-            scan_button_state: ScanButtonState::default(),
+            scan_button_mode: ScanButtonMode::default(),
             button_activation_until: None,
-            button_restore_state: None,
+            button_restore_mode: None,
         }
     }
 }
@@ -46,16 +45,16 @@ impl Default for ScanConfig {
 impl ScanConfig {
     pub fn set_selected_field(&mut self, field: SelectedField) {
         self.selected_field = field;
-        self.scan_button_state = if matches!(self.selected_field, SelectedField::ScanButton) {
-            ScanButtonState::Selected
+        self.scan_button_mode = if matches!(self.selected_field, SelectedField::ScanButton) {
+            ScanButtonMode::Selected
         } else {
-            ScanButtonState::Normal
+            ScanButtonMode::Normal
         };
     }
 
     pub fn deselect_all(&mut self) {
         self.selected_field = SelectedField::None;
-        self.scan_button_state = ScanButtonState::Normal;
+        self.scan_button_mode = ScanButtonMode::Normal;
     }
 
     pub fn next_field(&mut self) {
@@ -66,10 +65,10 @@ impl ScanConfig {
             SelectedField::Options => SelectedField::ScanButton,
             SelectedField::ScanButton => SelectedField::Targets,
         };
-        self.scan_button_state = if matches!(self.selected_field, SelectedField::ScanButton) {
-            ScanButtonState::Selected
+        self.scan_button_mode = if matches!(self.selected_field, SelectedField::ScanButton) {
+            ScanButtonMode::Selected
         } else {
-            ScanButtonState::Normal
+            ScanButtonMode::Normal
         };
     }
 
@@ -81,32 +80,32 @@ impl ScanConfig {
             SelectedField::Options => SelectedField::Ports,
             SelectedField::ScanButton => SelectedField::Options,
         };
-        self.scan_button_state = if matches!(self.selected_field, SelectedField::ScanButton) {
-            ScanButtonState::Selected
+        self.scan_button_mode = if matches!(self.selected_field, SelectedField::ScanButton) {
+            ScanButtonMode::Selected
         } else {
-            ScanButtonState::Normal
+            ScanButtonMode::Normal
         };
     }
 
     pub fn start_button_activation(&mut self) {
         let restore = if matches!(self.selected_field, SelectedField::ScanButton) {
-            ScanButtonState::Selected
+            ScanButtonMode::Selected
         } else {
-            ScanButtonState::Normal
+            ScanButtonMode::Normal
         };
-        self.scan_button_state = ScanButtonState::Active;
+        self.scan_button_mode = ScanButtonMode::Active;
         self.button_activation_until = Some(Instant::now() + Duration::from_millis(200));
-        self.button_restore_state = Some(restore);
+        self.button_restore_mode = Some(restore);
     }
 
     pub fn maybe_finish_button_activation(&mut self) -> bool {
         if let Some(until) = self.button_activation_until {
             if Instant::now() >= until {
                 let restore = self
-                    .button_restore_state
+                    .button_restore_mode
                     .take()
-                    .unwrap_or(ScanButtonState::Normal);
-                self.scan_button_state = restore;
+                    .unwrap_or(ScanButtonMode::Normal);
+                self.scan_button_mode = restore;
                 self.button_activation_until = None;
                 return true;
             }
