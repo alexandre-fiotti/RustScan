@@ -13,8 +13,9 @@ impl From<std::io::Error> for HandleEventError {
     }
 }
 
-use crate::tui_app::message::{AppMsg, Message, ResultsMsg};
+use crate::tui_app::message::{AppMsg, Message};
 use crate::tui_app::model::Model;
+use crate::tui_app::results::ResultsMsg;
 use crate::tui_app::scan_config::ScanConfigMsg;
 use crate::tui_app::scan_config::SelectedField;
 use crate::tui_app::ui::theme::layout;
@@ -24,6 +25,7 @@ pub fn handle_event(model: &Model, event: Event) -> Result<Option<Message>, Hand
     let msg = match event {
         Event::Key(key) => handle_key_event(model, key)?,
         Event::Mouse(mouse) => handle_mouse_event(model, mouse)?,
+        Event::Paste(pasted) => Some(ScanConfigMsg::Paste(pasted).into()),
         Event::Resize(_, _) => None,
         _ => None,
     };
@@ -39,6 +41,14 @@ fn handle_key_event(
         let msg = match key.code {
             // Quit application
             KeyCode::Char('q') | KeyCode::Esc => Some(AppMsg::Quit.into()),
+            // Stop scan (only when a scan is active)
+            KeyCode::Char('c') if key.modifiers == KeyModifiers::CONTROL => {
+                match model.scan_state() {
+                    crate::tui_app::model::ScanState::Running
+                    | crate::tui_app::model::ScanState::Requested => Some(AppMsg::StopScan.into()),
+                    _ => None,
+                }
+            }
 
             // Navigation
             KeyCode::Tab => Some(
@@ -95,10 +105,10 @@ fn handle_key_event(
             ),
 
             // Input handling
-            KeyCode::Enter => match model.scan_config().selected_field {
-                SelectedField::ScanButton => Some(ScanConfigMsg::ButtonActivate.into()),
-                _ => Some(ScanConfigMsg::ConfirmInput.into()),
-            },
+            KeyCode::Enter => {
+                // Start scan regardless of selected field; also deselect inputs
+                return Ok(Some(AppMsg::StartScan.into()));
+            }
             KeyCode::Backspace => Some(
                 if key.modifiers == KeyModifiers::CONTROL {
                     ScanConfigMsg::DeletePrevWord
@@ -130,7 +140,6 @@ fn handle_key_event(
             }
             // Handle character input
             KeyCode::Char(c) if key.modifiers.is_empty() => Some(ScanConfigMsg::AddChar(c).into()),
-
             _ => None,
         };
         return Ok(msg);
@@ -154,6 +163,8 @@ fn handle_mouse_event(
     };
     Ok(msg)
 }
+
+// Clipboard access is deliberately not implemented to avoid extra dependencies.
 
 /// Handle mouse click to select components
 fn handle_component_click(model: &Model, _column: u16, row: u16) -> Option<Message> {

@@ -1,5 +1,6 @@
 //! TEA Messages and Model alias
 
+use crate::tui_app::results::ResultsMsg;
 use crate::tui_app::scan_config::ScanConfigMsg;
 
 /// Top-level application messages
@@ -8,18 +9,12 @@ pub enum AppMsg {
     Quit,
     ToggleBanner,
     StartScan,
+    StopScan,
 }
 
 // Scan configuration messages are defined in scan_config/message.rs and re-exported here
 
 /// Messages for the results/output component
-#[derive(Debug, Clone)]
-pub enum ResultsMsg {
-    ScrollUp(usize),
-    ScrollDown(usize),
-    ScrollToTop,
-    ScrollToBottom,
-}
 
 /// Unified message for the application that wraps component messages
 #[derive(Debug, Clone)]

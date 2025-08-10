@@ -6,6 +6,7 @@ use log::debug;
 mod socket_iterator;
 use socket_iterator::SocketIterator;
 
+use crate::tui_app::results;
 use async_std::net::TcpStream;
 use async_std::prelude::*;
 use async_std::{io, net::UdpSocket};
@@ -296,11 +297,28 @@ impl Scanner {
 
     /// Formats and prints the port status
     fn fmt_ports(&self, socket: SocketAddr) {
+        // Preserve CLI behaviour and mirror formatting
         if !self.greppable {
-            if self.accessible {
+            // CLI: print formatted line, and also stream to TUI with same style preference
+            if results::has_results_sender() {
+                if self.accessible {
+                    results::try_send_line(format!("Open {}", socket));
+                } else {
+                    results::try_send_line(format!("Open {}", socket.to_string().purple()));
+                }
+            } else if self.accessible {
                 println!("Open {socket}");
             } else {
                 println!("Open {}", socket.to_string().purple());
+            }
+        } else {
+            // Greppable: CLI does not print live lines; stream an Open line to TUI (colored when not accessible)
+            if results::has_results_sender() {
+                if self.accessible {
+                    results::try_send_line(format!("Open {}", socket));
+                } else {
+                    results::try_send_line(format!("Open {}", socket.to_string().purple()));
+                }
             }
         }
     }

@@ -17,4 +17,5 @@ pub enum ScanConfigMsg {
     MoveCursorRight,
     MovePrevWord,
     MoveNextWord,
+    Paste(String),
 }

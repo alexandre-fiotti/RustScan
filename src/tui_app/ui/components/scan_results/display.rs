@@ -20,11 +20,9 @@ pub struct ResultsComponent;
 impl ResultsComponent {
     /// Render the results display section
     pub fn render(&self, f: &mut Frame, area: Rect, state: &Model) {
-        // Get visible output lines from the buffer
-        let output_lines = state
-            .output_buffer()
-            .get_visible_lines(area.height as usize);
-        let scroll_info = state.output_buffer().scroll_info(area.height as usize);
+        // Get visible lines from results model
+        let output_lines = state.results().get_visible_lines(area.height as usize);
+        let scroll_info = state.results().scroll_info(area.height as usize);
 
         // Convert strings to ratatui Lines
         let text_lines: Vec<Line> = output_lines.into_iter().map(Line::from).collect();

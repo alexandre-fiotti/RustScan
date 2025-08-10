@@ -34,6 +34,11 @@ pub fn update_scan_config(cfg: &mut ScanConfig, msg: ScanConfigMsg) {
                 input.insert_char(c)
             }
         }
+        ScanConfigMsg::Paste(s) => {
+            if let Some(input) = cfg.selected_text_input_mut() {
+                input.insert_str(&s)
+            }
+        }
         ScanConfigMsg::RemovePrevChar => {
             if let Some(input) = cfg.selected_text_input_mut() {
                 input.remove_previous_char()

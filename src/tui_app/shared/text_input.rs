@@ -46,6 +46,14 @@ impl TextInput {
         self.move_cursor_right();
     }
 
+    pub fn insert_str(&mut self, s: &str) {
+        let byte_index = self.byte_index();
+        self.text.insert_str(byte_index, s);
+        // advance cursor by char count of inserted string
+        let advance = s.chars().count();
+        self.set_cursor(self.cursor + advance);
+    }
+
     pub fn remove_previous_char(&mut self) {
         if self.cursor > 0 {
             let current_index = self.cursor;
