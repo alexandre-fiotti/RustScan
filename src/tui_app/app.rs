@@ -87,7 +87,7 @@ fn run_loop<B: ratatui::backend::Backend>(
         terminal.draw(|f| view(model, f))?;
 
         // Handle events
-        if event::poll(std::time::Duration::from_millis(250))? {
+        if event::poll(std::time::Duration::from_millis(50))? {
             let event = event::read()?;
             if let Some(mut msg) = handle_event(model, event)
                 .map_err(|e| io::Error::new(io::ErrorKind::Other, format!("{e:?}")))?
@@ -96,6 +96,21 @@ fn run_loop<B: ratatui::backend::Backend>(
                 loop {
                     if let Some(next) = update(model, msg) {
                         msg = next;
+                        continue;
+                    }
+                    break;
+                }
+            }
+        }
+
+        // If a short-lived activation is in progress, finish it when due and then start scan
+        if model.maybe_finish_button_activation() {
+            if let Some(next) = update(model, crate::tui_app::message::AppMsg::StartScan.into()) {
+                // Handle any cascaded follow-ups
+                let mut msg = next;
+                loop {
+                    if let Some(next2) = update(model, msg) {
+                        msg = next2;
                         continue;
                     }
                     break;

@@ -5,6 +5,7 @@
 use crate::input::Opts;
 use crate::tui_app::shared::{OutputBuffer, TextInput};
 use crate::tui_app::ui::components::scan_configuration::scan_button::State as ScanButtonState;
+use std::time::{Duration, Instant};
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum SelectedField {
@@ -62,6 +63,8 @@ pub struct Model {
     output_buffer: OutputBuffer,
     banner_collapsed: bool,
     scan_button_state: ScanButtonState,
+    button_activation_until: Option<Instant>,
+    button_restore_state: Option<ScanButtonState>,
 }
 
 impl Model {
@@ -75,6 +78,8 @@ impl Model {
             output_buffer: OutputBuffer::new(),
             banner_collapsed: false,
             scan_button_state: ScanButtonState::default(),
+            button_activation_until: None,
+            button_restore_state: None,
         }
     }
 
@@ -133,6 +138,12 @@ impl Model {
             SelectedField::Options => SelectedField::ScanButton,
             SelectedField::ScanButton => SelectedField::Targets,
         };
+        // Keep scan button visual state in sync with selection
+        if let SelectedField::ScanButton = self.selected_field {
+            self.scan_button_state = ScanButtonState::Selected;
+        } else {
+            self.scan_button_state = ScanButtonState::Normal;
+        }
     }
 
     pub fn prev_field(&mut self) {
@@ -143,6 +154,12 @@ impl Model {
             SelectedField::Options => SelectedField::Ports,
             SelectedField::ScanButton => SelectedField::Options,
         };
+        // Keep scan button visual state in sync with selection
+        if let SelectedField::ScanButton = self.selected_field {
+            self.scan_button_state = ScanButtonState::Selected;
+        } else {
+            self.scan_button_state = ScanButtonState::Normal;
+        }
     }
 
     pub fn add_char(&mut self, c: char) {
@@ -248,6 +265,32 @@ impl Model {
     }
 
     pub fn start_scan(&mut self) {}
+
+    pub fn start_button_activation(&mut self) {
+        let restore = if matches!(self.selected_field, SelectedField::ScanButton) {
+            ScanButtonState::Selected
+        } else {
+            ScanButtonState::Normal
+        };
+        self.scan_button_state = ScanButtonState::Active;
+        self.button_activation_until = Some(Instant::now() + Duration::from_millis(200));
+        self.button_restore_state = Some(restore);
+    }
+
+    pub fn maybe_finish_button_activation(&mut self) -> bool {
+        if let Some(until) = self.button_activation_until {
+            if Instant::now() >= until {
+                let restore = self
+                    .button_restore_state
+                    .take()
+                    .unwrap_or(ScanButtonState::Normal);
+                self.scan_button_state = restore;
+                self.button_activation_until = None;
+                return true;
+            }
+        }
+        false
+    }
 
     pub fn output_buffer(&self) -> &OutputBuffer {
         &self.output_buffer

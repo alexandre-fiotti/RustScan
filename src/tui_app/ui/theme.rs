@@ -13,6 +13,12 @@ pub const PRIMARY_GREEN: Color = Color::Rgb(0, 255, 0);
 /// Primary blue color - used for accents and links
 pub const PRIMARY_BLUE: Color = Color::Rgb(0, 150, 255);
 
+// Derived palette from banner for consistent theming
+const BLUE_LIGHT: Color = Color::Rgb(80, 200, 255);
+const BLUE_DARK: Color = Color::Rgb(0, 100, 200);
+const GREEN_LIGHT: Color = Color::Rgb(200, 255, 200);
+const GREEN_DARK: Color = Color::Rgb(0, 150, 0);
+
 // === Text Colors ===
 
 /// Primary text color for normal content
@@ -97,53 +103,37 @@ pub fn button_normal_background() -> Style {
 }
 
 pub fn button_normal_highlight() -> Style {
-    Style::default()
-        .bg(PRIMARY_BLUE)
-        .fg(Color::Rgb(80, 180, 255))
+    Style::default().bg(PRIMARY_BLUE).fg(BLUE_LIGHT)
 }
 
 pub fn button_normal_shadow() -> Style {
-    Style::default()
-        .bg(PRIMARY_BLUE)
-        .fg(Color::Rgb(0, 100, 200))
+    Style::default().bg(PRIMARY_BLUE).fg(BLUE_DARK)
 }
 
 // Selected state
 pub fn button_selected_background() -> Style {
-    Style::default()
-        .bg(Color::Rgb(0, 120, 220))
-        .fg(Color::White)
+    Style::default().bg(PRIMARY_GREEN).fg(Color::Black)
 }
 
 pub fn button_selected_highlight() -> Style {
-    Style::default()
-        .bg(Color::Rgb(0, 120, 220))
-        .fg(Color::Rgb(100, 190, 255))
+    Style::default().bg(PRIMARY_GREEN).fg(GREEN_LIGHT)
 }
 
 pub fn button_selected_shadow() -> Style {
-    Style::default()
-        .bg(Color::Rgb(0, 120, 220))
-        .fg(Color::Rgb(0, 90, 180))
+    Style::default().bg(PRIMARY_GREEN).fg(GREEN_DARK)
 }
 
 // Active state
 pub fn button_active_background() -> Style {
-    Style::default()
-        .bg(Color::Rgb(0, 100, 180))
-        .fg(Color::White)
+    Style::default().bg(BLUE_LIGHT).fg(Color::Black)
 }
 
 pub fn button_active_highlight() -> Style {
-    Style::default()
-        .bg(Color::Rgb(0, 100, 180))
-        .fg(Color::Rgb(0, 80, 160))
+    Style::default().bg(BLUE_LIGHT).fg(Color::White)
 }
 
 pub fn button_active_shadow() -> Style {
-    Style::default()
-        .bg(Color::Rgb(0, 100, 180))
-        .fg(Color::Rgb(100, 180, 255))
+    Style::default().bg(BLUE_LIGHT).fg(BLUE_DARK)
 }
 
 /// Layout constants used throughout the TUI

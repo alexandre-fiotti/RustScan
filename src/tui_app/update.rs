@@ -1,7 +1,6 @@
 //! TEA Update function: Message -> Model transition
 
 use crate::tui_app::message::{AppMsg, Message, ResultsMsg, ScanConfigMsg};
-use crate::tui_app::ui::components::scan_configuration::scan_button::State as ScanButtonState;
 use crate::tui_app::Model;
 
 /// Handle one message and update the model. Return a follow-up message to support cascading.
@@ -20,9 +19,8 @@ pub fn update(model: &mut Model, msg: Message) -> Option<Message> {
 
             // Actions
             AppMsg::ButtonActivate => {
-                model.set_scan_button_state(ScanButtonState::Active);
-                model.set_scan_button_state(ScanButtonState::Normal);
-                return Some(AppMsg::StartScan.into());
+                // Start 200ms active state; scan will start after it completes
+                model.start_button_activation();
             }
             AppMsg::StartScan => {
                 model

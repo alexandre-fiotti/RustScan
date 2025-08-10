@@ -88,12 +88,18 @@ impl<'a> Widget for Button<'a> {
             );
         }
 
-        // Render label centered
-        buf.set_line(
-            area.x + (area.width.saturating_sub(self.label.width() as u16)) / 2,
+        // Render label centered with state-specific style
+        let label_width = self.label.width() as u16;
+        let label_style = match self.state {
+            State::Normal => button_normal_background(),
+            State::Selected => button_selected_background(),
+            State::Active => button_active_background(),
+        };
+        buf.set_string(
+            area.x + (area.width.saturating_sub(label_width)) / 2,
             area.y + (area.height.saturating_sub(1)) / 2,
-            &self.label,
-            area.width,
+            "Scan",
+            label_style,
         );
     }
 }
