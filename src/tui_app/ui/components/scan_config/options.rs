@@ -11,7 +11,7 @@ use ratatui::{
 };
 
 use crate::tui_app::model::Model;
-use crate::tui_app::model::SelectedField;
+use crate::tui_app::scan_config::SelectedField;
 use crate::tui_app::ui::theme::{
     active_style, normal_text_style, text, title_selected_style, title_unselected_style,
     BORDER_NORMAL,
@@ -25,7 +25,7 @@ impl OptionsComponent {
     /// Render the options configuration section
     pub fn render(&self, f: &mut Frame, area: Rect, state: &Model) {
         let config = state.scan_config();
-        let is_selected = matches!(state.selected_field(), SelectedField::Options);
+        let is_selected = matches!(state.scan_config().selected_field, SelectedField::Options);
 
         let options_text = format!(
             "Timeout: {}ms | Batch Size: {} | {}",

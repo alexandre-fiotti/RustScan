@@ -13,9 +13,10 @@ impl From<std::io::Error> for HandleEventError {
     }
 }
 
-use crate::tui_app::message::{AppMsg, Message, ResultsMsg, ScanConfigMsg};
+use crate::tui_app::message::{AppMsg, Message, ResultsMsg};
 use crate::tui_app::model::Model;
-use crate::tui_app::model::SelectedField;
+use crate::tui_app::scan_config::ScanConfigMsg;
+use crate::tui_app::scan_config::SelectedField;
 use crate::tui_app::ui::theme::layout;
 
 /// Map an input event to an optional Message
@@ -42,21 +43,21 @@ fn handle_key_event(
             // Navigation
             KeyCode::Tab => Some(
                 if key.modifiers.contains(KeyModifiers::SHIFT) {
-                    AppMsg::PrevField
+                    ScanConfigMsg::PrevField
                 } else {
-                    AppMsg::NextField
+                    ScanConfigMsg::NextField
                 }
                 .into(),
             ),
             KeyCode::Up => Some(if key.modifiers == KeyModifiers::SHIFT {
                 ResultsMsg::ScrollUp(3).into()
             } else {
-                AppMsg::PrevField.into()
+                ScanConfigMsg::PrevField.into()
             }),
             KeyCode::Down => Some(if key.modifiers == KeyModifiers::SHIFT {
                 ResultsMsg::ScrollDown(3).into()
             } else {
-                AppMsg::NextField.into()
+                ScanConfigMsg::NextField.into()
             }),
             KeyCode::PageUp => Some(ResultsMsg::ScrollUp(10).into()),
             KeyCode::PageDown => Some(ResultsMsg::ScrollDown(10).into()),
@@ -94,9 +95,9 @@ fn handle_key_event(
             ),
 
             // Input handling
-            KeyCode::Enter => match model.selected_field() {
-                SelectedField::ScanButton => Some(AppMsg::ButtonActivate.into()),
-                _ => Some(AppMsg::ConfirmInput.into()),
+            KeyCode::Enter => match model.scan_config().selected_field {
+                SelectedField::ScanButton => Some(ScanConfigMsg::ButtonActivate.into()),
+                _ => Some(ScanConfigMsg::ConfirmInput.into()),
             },
             KeyCode::Backspace => Some(
                 if key.modifiers == KeyModifiers::CONTROL {
@@ -186,7 +187,7 @@ fn handle_component_click(model: &Model, _column: u16, row: u16) -> Option<Messa
         if relative_row >= button_start_row
             && relative_row < button_start_row + layout::BUTTON_HEIGHT
         {
-            return Some(AppMsg::ButtonActivate.into());
+            return Some(ScanConfigMsg::ButtonActivate.into());
         }
 
         // Check for input component clicks
@@ -201,7 +202,7 @@ fn handle_component_click(model: &Model, _column: u16, row: u16) -> Option<Messa
         if let Some(field) = new_field {
             return Some(ScanConfigMsg::SelectField(field).into());
         }
-        return Some(AppMsg::DeselectAll.into());
+        return Some(ScanConfigMsg::DeselectAll.into());
     }
-    Some(AppMsg::DeselectAll.into())
+    Some(ScanConfigMsg::DeselectAll.into())
 }

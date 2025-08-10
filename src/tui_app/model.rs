@@ -3,50 +3,8 @@
 //! TEA Model: owns all UI-visible state.
 
 use crate::input::Opts;
-use crate::tui_app::shared::{OutputBuffer, TextInput};
-use crate::tui_app::ui::components::scan_configuration::scan_button::State as ScanButtonState;
-use std::time::{Duration, Instant};
-
-#[derive(Debug, Clone, PartialEq)]
-pub enum SelectedField {
-    None,
-    Targets,
-    Ports,
-    Options,
-    ScanButton,
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub enum HoveredField {
-    None,
-    Targets,
-    Ports,
-    Options,
-    ScanButton,
-}
-
-#[derive(Debug, Clone)]
-pub struct ScanConfig {
-    pub targets: Vec<String>,
-    pub ports: Option<String>,
-    pub timeout: u32,
-    pub batch_size: u16,
-    pub targets_input: TextInput,
-    pub ports_input: TextInput,
-}
-
-impl Default for ScanConfig {
-    fn default() -> Self {
-        Self {
-            targets: Vec::new(),
-            ports: None,
-            timeout: 1500,
-            batch_size: 4500,
-            targets_input: TextInput::new(),
-            ports_input: TextInput::new(),
-        }
-    }
-}
+use crate::tui_app::scan_config::ScanConfig;
+use crate::tui_app::shared::OutputBuffer;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum RunningState {
@@ -58,13 +16,8 @@ pub struct Model {
     running_state: RunningState,
     opts: Opts,
     scan_config: ScanConfig,
-    selected_field: SelectedField,
-    hovered_field: HoveredField,
     output_buffer: OutputBuffer,
     banner_collapsed: bool,
-    scan_button_state: ScanButtonState,
-    button_activation_until: Option<Instant>,
-    button_restore_state: Option<ScanButtonState>,
 }
 
 impl Model {
@@ -73,13 +26,8 @@ impl Model {
             running_state: RunningState::Running,
             opts: Opts::default(),
             scan_config: ScanConfig::default(),
-            selected_field: SelectedField::None,
-            hovered_field: HoveredField::None,
             output_buffer: OutputBuffer::new(),
             banner_collapsed: false,
-            scan_button_state: ScanButtonState::default(),
-            button_activation_until: None,
-            button_restore_state: None,
         }
     }
 
@@ -108,202 +56,11 @@ impl Model {
         &mut self.scan_config
     }
 
-    pub fn selected_field(&self) -> &SelectedField {
-        &self.selected_field
-    }
-    pub fn scan_button_state(&self) -> &ScanButtonState {
-        &self.scan_button_state
-    }
-    pub fn set_scan_button_state(&mut self, state: ScanButtonState) {
-        self.scan_button_state = state;
-    }
-
-    pub fn set_selected_field(&mut self, field: SelectedField) {
-        self.selected_field = field;
-        if let SelectedField::ScanButton = self.selected_field {
-            self.scan_button_state = ScanButtonState::Selected;
-        }
-    }
-
-    pub fn deselect_all(&mut self) {
-        self.selected_field = SelectedField::None;
-        self.scan_button_state = ScanButtonState::Normal;
-    }
-
-    pub fn next_field(&mut self) {
-        self.selected_field = match self.selected_field {
-            SelectedField::None => SelectedField::Targets,
-            SelectedField::Targets => SelectedField::Ports,
-            SelectedField::Ports => SelectedField::Options,
-            SelectedField::Options => SelectedField::ScanButton,
-            SelectedField::ScanButton => SelectedField::Targets,
-        };
-        // Keep scan button visual state in sync with selection
-        if let SelectedField::ScanButton = self.selected_field {
-            self.scan_button_state = ScanButtonState::Selected;
-        } else {
-            self.scan_button_state = ScanButtonState::Normal;
-        }
-    }
-
-    pub fn prev_field(&mut self) {
-        self.selected_field = match self.selected_field {
-            SelectedField::None => SelectedField::ScanButton,
-            SelectedField::Targets => SelectedField::ScanButton,
-            SelectedField::Ports => SelectedField::Targets,
-            SelectedField::Options => SelectedField::Ports,
-            SelectedField::ScanButton => SelectedField::Options,
-        };
-        // Keep scan button visual state in sync with selection
-        if let SelectedField::ScanButton = self.selected_field {
-            self.scan_button_state = ScanButtonState::Selected;
-        } else {
-            self.scan_button_state = ScanButtonState::Normal;
-        }
-    }
-
-    pub fn add_char(&mut self, c: char) {
-        match self.selected_field {
-            SelectedField::Targets => self.scan_config.targets_input.insert_char(c),
-            SelectedField::Ports => self.scan_config.ports_input.insert_char(c),
-            _ => {}
-        }
-    }
-
-    pub fn remove_previous_char(&mut self) {
-        match self.selected_field {
-            SelectedField::Targets => self.scan_config.targets_input.remove_previous_char(),
-            SelectedField::Ports => self.scan_config.ports_input.remove_previous_char(),
-            _ => {}
-        }
-    }
-
-    pub fn remove_next_char(&mut self) {
-        match self.selected_field {
-            SelectedField::Targets => self.scan_config.targets_input.remove_next_char(),
-            SelectedField::Ports => self.scan_config.ports_input.remove_next_char(),
-            _ => {}
-        }
-    }
-
-    pub fn delete_previous_word(&mut self) {
-        match self.selected_field {
-            SelectedField::Targets => self.scan_config.targets_input.delete_previous_word(),
-            SelectedField::Ports => self.scan_config.ports_input.delete_previous_word(),
-            _ => {}
-        }
-    }
-
-    pub fn delete_next_word(&mut self) {
-        match self.selected_field {
-            SelectedField::Targets => self.scan_config.targets_input.delete_next_word(),
-            SelectedField::Ports => self.scan_config.ports_input.delete_next_word(),
-            _ => {}
-        }
-    }
-
-    pub fn move_cursor_to_previous_word(&mut self) {
-        match self.selected_field {
-            SelectedField::Targets => self
-                .scan_config
-                .targets_input
-                .move_cursor_to_previous_word(),
-            SelectedField::Ports => self.scan_config.ports_input.move_cursor_to_previous_word(),
-            _ => {}
-        }
-    }
-
-    pub fn move_cursor_to_next_word(&mut self) {
-        match self.selected_field {
-            SelectedField::Targets => self.scan_config.targets_input.move_cursor_to_next_word(),
-            SelectedField::Ports => self.scan_config.ports_input.move_cursor_to_next_word(),
-            _ => {}
-        }
-    }
-
-    pub fn move_cursor_left(&mut self) {
-        match self.selected_field {
-            SelectedField::Targets => self.scan_config.targets_input.move_cursor_left(),
-            SelectedField::Ports => self.scan_config.ports_input.move_cursor_left(),
-            _ => {}
-        }
-    }
-
-    pub fn move_cursor_right(&mut self) {
-        match self.selected_field {
-            SelectedField::Targets => self.scan_config.targets_input.move_cursor_right(),
-            SelectedField::Ports => self.scan_config.ports_input.move_cursor_right(),
-            _ => {}
-        }
-    }
-
-    pub fn confirm_input(&mut self) {
-        match self.selected_field {
-            SelectedField::Targets => {
-                if !self.scan_config.targets_input.is_empty() {
-                    self.scan_config.targets = self
-                        .scan_config
-                        .targets_input
-                        .text()
-                        .split(',')
-                        .map(|s| s.trim().to_string())
-                        .filter(|s| !s.is_empty())
-                        .collect();
-                }
-                self.scan_config.targets_input.clear();
-            }
-            SelectedField::Ports => {
-                if !self.scan_config.ports_input.is_empty() {
-                    self.scan_config.ports = Some(self.scan_config.ports_input.text().to_string());
-                } else {
-                    self.scan_config.ports = None;
-                }
-                self.scan_config.ports_input.clear();
-            }
-            _ => {}
-        }
-    }
-
-    pub fn start_scan(&mut self) {}
-
-    pub fn start_button_activation(&mut self) {
-        let restore = if matches!(self.selected_field, SelectedField::ScanButton) {
-            ScanButtonState::Selected
-        } else {
-            ScanButtonState::Normal
-        };
-        self.scan_button_state = ScanButtonState::Active;
-        self.button_activation_until = Some(Instant::now() + Duration::from_millis(200));
-        self.button_restore_state = Some(restore);
-    }
-
-    pub fn maybe_finish_button_activation(&mut self) -> bool {
-        if let Some(until) = self.button_activation_until {
-            if Instant::now() >= until {
-                let restore = self
-                    .button_restore_state
-                    .take()
-                    .unwrap_or(ScanButtonState::Normal);
-                self.scan_button_state = restore;
-                self.button_activation_until = None;
-                return true;
-            }
-        }
-        false
-    }
-
     pub fn output_buffer(&self) -> &OutputBuffer {
         &self.output_buffer
     }
     pub fn output_buffer_mut(&mut self) -> &mut OutputBuffer {
         &mut self.output_buffer
-    }
-
-    pub fn hovered_field(&self) -> &HoveredField {
-        &self.hovered_field
-    }
-    pub fn set_hovered_field(&mut self, field: HoveredField) {
-        self.hovered_field = field;
     }
 
     pub fn is_banner_collapsed(&self) -> bool {

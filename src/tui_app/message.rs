@@ -1,34 +1,16 @@
 //! TEA Messages and Model alias
 
-use crate::tui_app::model::SelectedField;
+use crate::tui_app::scan_config::ScanConfigMsg;
 
 /// Top-level application messages
 #[derive(Debug, Clone)]
 pub enum AppMsg {
     Quit,
     ToggleBanner,
-    NextField,
-    PrevField,
-    DeselectAll,
-    ButtonActivate,
     StartScan,
-    ConfirmInput,
 }
 
-/// Messages for the scan configuration component
-#[derive(Debug, Clone)]
-pub enum ScanConfigMsg {
-    SelectField(SelectedField),
-    AddChar(char),
-    RemovePrevChar,
-    RemoveNextChar,
-    DeletePrevWord,
-    DeleteNextWord,
-    MoveCursorLeft,
-    MoveCursorRight,
-    MovePrevWord,
-    MoveNextWord,
-}
+// Scan configuration messages are defined in scan_config/message.rs and re-exported here
 
 /// Messages for the results/output component
 #[derive(Debug, Clone)]

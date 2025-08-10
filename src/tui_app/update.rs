@@ -1,6 +1,7 @@
 //! TEA Update function: Message -> Model transition
 
-use crate::tui_app::message::{AppMsg, Message, ResultsMsg, ScanConfigMsg};
+use crate::tui_app::message::{AppMsg, Message, ResultsMsg};
+use crate::tui_app::scan_config::update::update_scan_config;
 use crate::tui_app::Model;
 
 /// Handle one message and update the model. Return a follow-up message to support cascading.
@@ -11,17 +12,6 @@ pub fn update(model: &mut Model, msg: Message) -> Option<Message> {
             AppMsg::Quit => model.set_should_quit(true),
             AppMsg::ToggleBanner => model.toggle_banner_collapsed(),
 
-            // Navigation / focus
-            AppMsg::NextField => model.next_field(),
-            AppMsg::PrevField => model.prev_field(),
-            AppMsg::DeselectAll => model.deselect_all(),
-            AppMsg::ConfirmInput => model.confirm_input(),
-
-            // Actions
-            AppMsg::ButtonActivate => {
-                // Start 200ms active state; scan will start after it completes
-                model.start_button_activation();
-            }
             AppMsg::StartScan => {
                 model
                     .output_buffer()
@@ -29,19 +19,8 @@ pub fn update(model: &mut Model, msg: Message) -> Option<Message> {
             }
         },
 
-        // Delegate scan configuration updates to closest parent (Model)
-        Message::ScanConfig(cfg_msg) => match cfg_msg {
-            ScanConfigMsg::SelectField(field) => model.set_selected_field(field),
-            ScanConfigMsg::AddChar(c) => model.add_char(c),
-            ScanConfigMsg::RemovePrevChar => model.remove_previous_char(),
-            ScanConfigMsg::RemoveNextChar => model.remove_next_char(),
-            ScanConfigMsg::DeletePrevWord => model.delete_previous_word(),
-            ScanConfigMsg::DeleteNextWord => model.delete_next_word(),
-            ScanConfigMsg::MoveCursorLeft => model.move_cursor_left(),
-            ScanConfigMsg::MoveCursorRight => model.move_cursor_right(),
-            ScanConfigMsg::MovePrevWord => model.move_cursor_to_previous_word(),
-            ScanConfigMsg::MoveNextWord => model.move_cursor_to_next_word(),
-        },
+        // Delegate scan configuration updates to its own update
+        Message::ScanConfig(cfg_msg) => update_scan_config(model.scan_config_mut(), cfg_msg),
 
         // Delegate scrolling to results/output parent
         Message::Results(res_msg) => match res_msg {

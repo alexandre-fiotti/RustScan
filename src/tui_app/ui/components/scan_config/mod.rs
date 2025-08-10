@@ -44,6 +44,6 @@ impl ScanConfigurationComponents {
         // Render button in the bottom action area
         let action_chunks = ScanConfigLayout::bottom_action_area(chunks[3]);
         self.scan_button
-            .render(f, action_chunks[1], &state.scan_button_state());
+            .render(f, action_chunks[1], &state.scan_config().scan_button_state);
     }
 }

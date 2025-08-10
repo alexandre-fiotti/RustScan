@@ -7,12 +7,12 @@ use ratatui::{layout::Rect, Frame};
 
 pub mod footer;
 pub mod header;
-pub mod scan_configuration;
+pub mod scan_config;
 pub mod scan_results;
 
 use footer::FooterComponent;
 use header::HeaderComponent;
-use scan_configuration::ScanConfigurationComponents;
+use scan_config::ScanConfigurationComponents;
 use scan_results::ResultsComponent;
 
 /// Main UI components coordinator

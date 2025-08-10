@@ -104,7 +104,7 @@ fn run_loop<B: ratatui::backend::Backend>(
         }
 
         // If a short-lived activation is in progress, finish it when due and then start scan
-        if model.maybe_finish_button_activation() {
+        if model.scan_config_mut().maybe_finish_button_activation() {
             if let Some(next) = update(model, crate::tui_app::message::AppMsg::StartScan.into()) {
                 // Handle any cascaded follow-ups
                 let mut msg = next;
