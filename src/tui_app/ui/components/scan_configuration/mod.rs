@@ -3,7 +3,7 @@
 //! This module contains all components and layout logic for the scan configuration section.
 //! It handles targets, ports, and options input with proper layout management.
 
-use crate::tui_app::AppState;
+use crate::tui_app::model::Model;
 use ratatui::{layout::Rect, Frame};
 
 pub mod layout;
@@ -29,7 +29,7 @@ pub struct ScanConfigurationComponents {
 
 impl ScanConfigurationComponents {
     /// Render the entire scan configuration section
-    pub fn render(&self, f: &mut Frame, area: Rect, state: &AppState) {
+    pub fn render(&self, f: &mut Frame, area: Rect, state: &Model) {
         // Render the section frame and get the inner area
         let inner_area = ScanConfigLayout::render_section_frame(f, area);
 

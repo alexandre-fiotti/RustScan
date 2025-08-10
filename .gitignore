@@ -124,3 +124,6 @@ fabric.properties
 .idea*
 
 settings.json
+
+# Cursor IDE
+.cursor/

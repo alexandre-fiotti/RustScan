@@ -18,7 +18,7 @@ use std::process::Output;
 use std::sync::{Mutex, OnceLock};
 use std::thread;
 
-use crate::tui_app::models::OutputBuffer;
+use crate::tui_app::shared::OutputBuffer;
 
 /// Thread-safe global output buffer for TUI mode
 /// Uses OnceLock for safer initialization compared to static mut

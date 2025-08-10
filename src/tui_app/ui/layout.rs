@@ -5,14 +5,14 @@
 use ratatui::layout::{Constraint, Direction, Layout as RatatuiLayout, Rect};
 
 use super::theme::layout;
-use crate::tui_app::AppState;
+use crate::tui_app::model::Model;
 
 /// Layout utilities for the TUI
 pub struct Layout;
 
 impl Layout {
     /// Create the main layout with banner, content, and footer areas
-    pub fn main_layout(area: Rect, state: &AppState) -> Vec<Rect> {
+    pub fn main_layout(area: Rect, state: &Model) -> Vec<Rect> {
         let header_height = if state.is_banner_collapsed() {
             layout::HEADER_HEIGHT_COLLAPSED
         } else {

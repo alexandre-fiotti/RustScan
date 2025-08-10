@@ -2,7 +2,7 @@
 //!
 //! This module contains all UI components for the TUI interface.
 
-use crate::tui_app::AppState;
+use crate::tui_app::model::Model;
 use ratatui::{layout::Rect, Frame};
 
 pub mod footer;
@@ -26,17 +26,17 @@ pub struct UIComponents {
 
 impl UIComponents {
     /// Render the header section
-    pub fn render_header(&self, f: &mut Frame, area: Rect, state: &AppState) {
+    pub fn render_header(&self, f: &mut Frame, area: Rect, state: &Model) {
         self.header.render(f, area, state);
     }
 
     /// Render the scan configuration section
-    pub fn render_scan_config(&self, f: &mut Frame, area: Rect, state: &AppState) {
+    pub fn render_scan_config(&self, f: &mut Frame, area: Rect, state: &Model) {
         self.scan_config.render(f, area, state);
     }
 
     /// Render the scan results section
-    pub fn render_results(&self, f: &mut Frame, area: Rect, state: &AppState) {
+    pub fn render_results(&self, f: &mut Frame, area: Rect, state: &Model) {
         self.results.render(f, area, state);
     }
 

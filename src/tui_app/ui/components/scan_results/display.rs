@@ -10,8 +10,8 @@ use ratatui::{
     Frame,
 };
 
+use crate::tui_app::model::Model;
 use crate::tui_app::ui::theme::{section_title_style, text};
-use crate::tui_app::AppState;
 
 /// Component for displaying scan results and terminal output
 #[derive(Default)]
@@ -19,7 +19,7 @@ pub struct ResultsComponent;
 
 impl ResultsComponent {
     /// Render the results display section
-    pub fn render(&self, f: &mut Frame, area: Rect, state: &AppState) {
+    pub fn render(&self, f: &mut Frame, area: Rect, state: &Model) {
         // Get visible output lines from the buffer
         let output_lines = state
             .output_buffer()

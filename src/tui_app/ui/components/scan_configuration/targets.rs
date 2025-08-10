@@ -10,11 +10,12 @@ use ratatui::{
     Frame,
 };
 
+use crate::tui_app::model::Model;
+use crate::tui_app::model::SelectedField;
 use crate::tui_app::ui::theme::{
-    active_style, border_normal, normal_text_style, placeholder_style, text, title_selected_style,
-    title_unselected_style,
+    active_style, normal_text_style, placeholder_style, text, title_selected_style,
+    title_unselected_style, BORDER_NORMAL,
 };
-use crate::tui_app::{AppState, SelectedField};
 
 /// Component for managing scan targets
 #[derive(Default)]
@@ -22,7 +23,7 @@ pub struct TargetsComponent;
 
 impl TargetsComponent {
     /// Render the targets configuration section
-    pub fn render(&self, f: &mut Frame, area: Rect, state: &AppState) {
+    pub fn render(&self, f: &mut Frame, area: Rect, state: &Model) {
         let config = state.scan_config();
         let is_selected = matches!(state.selected_field(), SelectedField::Targets);
 
@@ -45,10 +46,7 @@ impl TargetsComponent {
         let (border_style, title_style) = if is_selected {
             (active_style(), title_selected_style())
         } else {
-            (
-                Style::default().fg(border_normal()),
-                title_unselected_style(),
-            )
+            (Style::default().fg(BORDER_NORMAL), title_unselected_style())
         };
 
         let widget = Paragraph::new(display_text).style(style).block(

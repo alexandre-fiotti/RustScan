@@ -10,8 +10,8 @@ use ratatui::{
     Frame,
 };
 
+use crate::tui_app::model::Model;
 use crate::tui_app::ui::theme::text;
-use crate::tui_app::AppState;
 
 /// Component for displaying the header banner
 #[derive(Default)]
@@ -19,7 +19,7 @@ pub struct HeaderComponent;
 
 impl HeaderComponent {
     /// Render the RustScan banner with gradient colors or collapsed text
-    pub fn render(&self, f: &mut Frame, area: Rect, state: &AppState) {
+    pub fn render(&self, f: &mut Frame, area: Rect, state: &Model) {
         let width = area.width as usize;
 
         if state.is_banner_collapsed() {

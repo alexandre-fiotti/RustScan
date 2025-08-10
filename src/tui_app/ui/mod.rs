@@ -3,7 +3,7 @@
 //! This module handles all UI rendering using a component-based architecture.
 //! Each component is responsible for rendering a specific part of the interface.
 
-use crate::tui_app::AppState;
+use crate::tui_app::model::Model;
 use ratatui::Frame;
 
 pub mod components;
@@ -20,7 +20,7 @@ pub struct UI {
 
 impl UI {
     /// Render the entire UI
-    pub fn render(&self, f: &mut Frame, state: &AppState) {
+    pub fn render(&self, f: &mut Frame, state: &Model) {
         // Create main layout: banner + content + footer
         let main_chunks = layout::Layout::main_layout(f.area(), state);
 

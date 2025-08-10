@@ -8,38 +8,26 @@ use ratatui::style::{Color, Modifier, Style};
 // === Core Brand Colors ===
 
 /// Primary green color - used for highlights and active elements
-pub const fn primary_green() -> Color {
-    Color::Rgb(0, 255, 0)
-}
+pub const PRIMARY_GREEN: Color = Color::Rgb(0, 255, 0);
 
 /// Primary blue color - used for accents and links
-pub const fn primary_blue() -> Color {
-    Color::Rgb(0, 150, 255)
-}
+pub const PRIMARY_BLUE: Color = Color::Rgb(0, 150, 255);
 
 // === Text Colors ===
 
 /// Primary text color for normal content
-pub const fn text_primary() -> Color {
-    Color::White
-}
+pub const TEXT_PRIMARY: Color = Color::White;
 
 /// Placeholder text color for empty fields
-pub const fn text_placeholder() -> Color {
-    Color::Gray
-}
+pub const TEXT_PLACEHOLDER: Color = Color::Gray;
 
 // === Border Colors ===
 
 /// Active border color for selected elements
-pub const fn border_active() -> Color {
-    primary_green()
-}
+pub const BORDER_ACTIVE: Color = PRIMARY_GREEN;
 
 /// Normal border color for unselected elements
-pub const fn border_normal() -> Color {
-    Color::White
-}
+pub const BORDER_NORMAL: Color = Color::White;
 
 // === Common Styles ===
 
@@ -47,7 +35,7 @@ pub const fn border_normal() -> Color {
 /// Used for major sections like "Scan Configuration" and "Scan Results"
 pub fn section_title_style() -> Style {
     Style::default()
-        .fg(text_primary())
+        .fg(TEXT_PRIMARY)
         .add_modifier(Modifier::BOLD)
 }
 
@@ -55,7 +43,7 @@ pub fn section_title_style() -> Style {
 /// Used for individual components like "Targets", "Ports", "Options" when selected
 pub fn title_selected_style() -> Style {
     Style::default()
-        .fg(primary_green())
+        .fg(PRIMARY_GREEN)
         .add_modifier(Modifier::BOLD)
 }
 
@@ -63,7 +51,7 @@ pub fn title_selected_style() -> Style {
 /// Used for individual components like "Targets", "Ports", "Options" when not selected
 pub fn title_unselected_style() -> Style {
     Style::default()
-        .fg(text_primary())
+        .fg(TEXT_PRIMARY)
         .add_modifier(Modifier::BOLD)
 }
 
@@ -71,52 +59,52 @@ pub fn title_unselected_style() -> Style {
 /// Provides visual feedback that the component can be clicked
 pub fn title_hovered_style() -> Style {
     Style::default()
-        .fg(primary_blue())
+        .fg(PRIMARY_BLUE)
         .add_modifier(Modifier::BOLD | Modifier::UNDERLINED)
 }
 
 /// Style for component borders when hovered (blue border)
 /// Provides visual feedback that the component can be clicked
 pub fn border_hovered_style() -> Style {
-    Style::default().fg(primary_blue())
+    Style::default().fg(PRIMARY_BLUE)
 }
 
 /// Style for active/selected elements
 pub fn active_style() -> Style {
-    Style::default().fg(border_active())
+    Style::default().fg(BORDER_ACTIVE)
 }
 
 /// Style for normal text
 pub fn normal_text_style() -> Style {
-    Style::default().fg(text_primary())
+    Style::default().fg(TEXT_PRIMARY)
 }
 
 /// Style for placeholder text
 pub fn placeholder_style() -> Style {
-    Style::default().fg(text_placeholder())
+    Style::default().fg(TEXT_PLACEHOLDER)
 }
 
 /// Style for links and clickable elements
 pub fn link_style() -> Style {
-    Style::default().fg(primary_blue())
+    Style::default().fg(PRIMARY_BLUE)
 }
 
 // === Button Theme Functions ===
 
 // Normal state
 pub fn button_normal_background() -> Style {
-    Style::default().bg(primary_blue()).fg(Color::Black)
+    Style::default().bg(PRIMARY_BLUE).fg(Color::Black)
 }
 
 pub fn button_normal_highlight() -> Style {
     Style::default()
-        .bg(primary_blue())
+        .bg(PRIMARY_BLUE)
         .fg(Color::Rgb(80, 180, 255))
 }
 
 pub fn button_normal_shadow() -> Style {
     Style::default()
-        .bg(primary_blue())
+        .bg(PRIMARY_BLUE)
         .fg(Color::Rgb(0, 100, 200))
 }
 

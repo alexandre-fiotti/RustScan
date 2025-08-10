@@ -7,7 +7,7 @@ use rustscan::input::{self, Config, Opts, ScriptsRequired};
 use rustscan::port_strategy::PortStrategy;
 use rustscan::scanner::Scanner;
 use rustscan::scripts::{init_scripts, Script, ScriptFile};
-use rustscan::tui_app::TuiApp;
+use rustscan::tui_app::run_tui;
 use rustscan::{detail, funny_opening, output, warning};
 
 use colorful::{Color, Colorful};
@@ -44,7 +44,7 @@ fn main() {
 
     // Check if we should launch TUI (no arguments provided)
     if std::env::args().len() <= 1 {
-        if let Err(e) = TuiApp::run() {
+        if let Err(e) = run_tui() {
             warning!(format!("Failed to start TUI: {e}"));
             std::process::exit(1);
         }

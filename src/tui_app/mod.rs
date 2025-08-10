@@ -5,14 +5,17 @@
 
 pub mod app;
 pub mod events;
-pub mod models;
-pub mod state;
+pub mod message;
+pub mod model;
+pub mod shared;
 pub mod ui;
+pub mod update;
+pub mod view;
 
-pub use app::TuiApp;
-pub use events::EventHandler;
-pub use models::{OutputBuffer, TextInput};
-pub use state::{AppState, HoveredField, SelectedField};
+pub use app::run_tui;
+pub use message::Message;
+pub use model::{HoveredField, Model, SelectedField};
+pub use shared::{OutputBuffer, TextInput};
 pub use ui::components::scan_results::{
     execute_shell_command_for_tui, init_tui_output_capture, is_tui_mode,
 };
