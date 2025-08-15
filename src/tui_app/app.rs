@@ -91,8 +91,8 @@ fn run_loop<B: ratatui::backend::Backend>(
         // Handle events
         if event::poll(std::time::Duration::from_millis(50))? {
             let event = event::read()?;
-            if let Some(mut msg) = handle_event(model, event)
-                .map_err(|e| io::Error::new(io::ErrorKind::Other, format!("{e:?}")))?
+            if let Some(mut msg) =
+                handle_event(model, event).map_err(|e| io::Error::other(format!("{e:?}")))?
             {
                 // Cascade updates as long as update returns a follow-up message
                 loop {

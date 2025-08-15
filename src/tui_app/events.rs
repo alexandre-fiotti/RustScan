@@ -2,6 +2,13 @@
 
 use crossterm::event::{Event, KeyCode, KeyEventKind, KeyModifiers, MouseEventKind};
 
+use crate::tui_app::message::{AppMsg, Message};
+use crate::tui_app::model::{FocusedArea, Model, ScanState};
+use crate::tui_app::results::ResultsMsg;
+use crate::tui_app::scan_config::ScanConfigMsg;
+use crate::tui_app::scan_config::SelectedField;
+use crate::tui_app::ui::theme::layout;
+
 #[derive(Debug)]
 pub enum HandleEventError {
     Io(std::io::Error),
@@ -12,13 +19,6 @@ impl From<std::io::Error> for HandleEventError {
         Self::Io(value)
     }
 }
-
-use crate::tui_app::message::{AppMsg, Message};
-use crate::tui_app::model::Model;
-use crate::tui_app::results::ResultsMsg;
-use crate::tui_app::scan_config::ScanConfigMsg;
-use crate::tui_app::scan_config::SelectedField;
-use crate::tui_app::ui::theme::layout;
 
 /// Map an input event to an optional Message
 pub fn handle_event(model: &Model, event: Event) -> Result<Option<Message>, HandleEventError> {
@@ -38,113 +38,143 @@ fn handle_key_event(
     key: crossterm::event::KeyEvent,
 ) -> Result<Option<Message>, HandleEventError> {
     if key.kind == KeyEventKind::Press {
-        let msg = match key.code {
-            // Quit application
-            KeyCode::Char('q') | KeyCode::Esc => Some(AppMsg::Quit.into()),
-            // Stop scan (only when a scan is active)
-            KeyCode::Char('c') if key.modifiers == KeyModifiers::CONTROL => {
-                match model.scan_state() {
-                    crate::tui_app::model::ScanState::Running
-                    | crate::tui_app::model::ScanState::Requested => Some(AppMsg::StopScan.into()),
-                    _ => None,
-                }
-            }
-
-            // Navigation
-            KeyCode::Tab => Some(
-                if key.modifiers.contains(KeyModifiers::SHIFT) {
-                    ScanConfigMsg::PrevField
-                } else {
-                    ScanConfigMsg::NextField
-                }
-                .into(),
-            ),
-            KeyCode::Up => Some(if key.modifiers == KeyModifiers::SHIFT {
-                ResultsMsg::ScrollUp(3).into()
-            } else {
-                ScanConfigMsg::PrevField.into()
-            }),
-            KeyCode::Down => Some(if key.modifiers == KeyModifiers::SHIFT {
-                ResultsMsg::ScrollDown(3).into()
-            } else {
-                ScanConfigMsg::NextField.into()
-            }),
-            KeyCode::PageUp => Some(ResultsMsg::ScrollUp(10).into()),
-            KeyCode::PageDown => Some(ResultsMsg::ScrollDown(10).into()),
-            KeyCode::Home => {
-                if key.modifiers == KeyModifiers::CONTROL {
-                    Some(ResultsMsg::ScrollToTop.into())
-                } else {
-                    None
-                }
-            }
-            KeyCode::End => {
-                if key.modifiers == KeyModifiers::CONTROL {
-                    Some(ResultsMsg::ScrollToBottom.into())
-                } else {
-                    None
-                }
-            }
-
-            // Cursor movement within field
-            KeyCode::Left => Some(
-                if key.modifiers == KeyModifiers::CONTROL {
-                    ScanConfigMsg::MovePrevWord
-                } else {
-                    ScanConfigMsg::MoveCursorLeft
-                }
-                .into(),
-            ),
-            KeyCode::Right => Some(
-                if key.modifiers == KeyModifiers::CONTROL {
-                    ScanConfigMsg::MoveNextWord
-                } else {
-                    ScanConfigMsg::MoveCursorRight
-                }
-                .into(),
-            ),
-
-            // Input handling
-            KeyCode::Enter => {
-                // Start scan regardless of selected field; also deselect inputs
-                return Ok(Some(AppMsg::StartScan.into()));
-            }
-            KeyCode::Backspace => Some(
-                if key.modifiers == KeyModifiers::CONTROL {
-                    ScanConfigMsg::DeletePrevWord
-                } else {
-                    ScanConfigMsg::RemovePrevChar
-                }
-                .into(),
-            ),
-            KeyCode::Delete => Some(
-                if key.modifiers == KeyModifiers::CONTROL {
-                    ScanConfigMsg::DeleteNextWord
-                } else {
-                    ScanConfigMsg::RemoveNextChar
-                }
-                .into(),
-            ),
-            // Simple alternative key combinations
-            KeyCode::Char('w') if key.modifiers == KeyModifiers::CONTROL => {
-                Some(ScanConfigMsg::DeletePrevWord.into())
-            }
-            KeyCode::Char('d') if key.modifiers == KeyModifiers::CONTROL => {
-                Some(ScanConfigMsg::DeleteNextWord.into())
-            }
-            // Handle terminals that send raw ASCII codes for Ctrl+Backspace/Delete
-            KeyCode::Char('\u{08}') => Some(ScanConfigMsg::DeletePrevWord.into()),
-            KeyCode::Char('\u{7f}') => Some(ScanConfigMsg::DeleteNextWord.into()),
-            KeyCode::Char('h') if key.modifiers == KeyModifiers::CONTROL => {
-                Some(ScanConfigMsg::DeletePrevWord.into())
-            }
-            // Handle character input
-            KeyCode::Char(c) if key.modifiers.is_empty() => Some(ScanConfigMsg::AddChar(c).into()),
-            _ => None,
+        // 1) Global shortcuts (independent of focus)
+        if let Some(global) = handle_key_global(model, key) {
+            return Ok(Some(global));
+        }
+        // 2) Route by focused area
+        let routed = match model.focused_area() {
+            FocusedArea::ScanConfig => handle_key_scan_config(key),
+            FocusedArea::Results => handle_key_results(key),
+            FocusedArea::Header => handle_key_header(key),
+            FocusedArea::None => handle_key_none(key),
         };
-        return Ok(msg);
+        return Ok(routed);
     }
     Ok(None)
+}
+
+// Global shortcuts: quit, stop scan, scrolling with PageUp/PageDown and Ctrl+Home/End,
+// Shift+Up/Down scroll results, Enter starts scan
+fn handle_key_global(model: &Model, key: crossterm::event::KeyEvent) -> Option<Message> {
+    match key.code {
+        // Quit application
+        KeyCode::Char('q') | KeyCode::Esc => Some(AppMsg::Quit.into()),
+        // Stop scan (only when a scan is active)
+        KeyCode::Char('c') if key.modifiers == KeyModifiers::CONTROL => match model.scan_state() {
+            ScanState::Running | ScanState::Requested => Some(AppMsg::StopScan.into()),
+            _ => None,
+        },
+        // Enter: Start scan
+        KeyCode::Enter => Some(AppMsg::StartScan.into()),
+
+        // Results scrolling (global)
+        KeyCode::PageUp => Some(ResultsMsg::ScrollUp(10).into()),
+        KeyCode::PageDown => Some(ResultsMsg::ScrollDown(10).into()),
+        KeyCode::Home if key.modifiers == KeyModifiers::CONTROL => {
+            Some(ResultsMsg::ScrollToTop.into())
+        }
+        KeyCode::End if key.modifiers == KeyModifiers::CONTROL => {
+            Some(ResultsMsg::ScrollToBottom.into())
+        }
+        KeyCode::Up if key.modifiers == KeyModifiers::SHIFT => Some(ResultsMsg::ScrollUp(3).into()),
+        KeyCode::Down if key.modifiers == KeyModifiers::SHIFT => {
+            Some(ResultsMsg::ScrollDown(3).into())
+        }
+
+        _ => None,
+    }
+}
+
+// Keys for scan configuration area
+fn handle_key_scan_config(key: crossterm::event::KeyEvent) -> Option<Message> {
+    match key.code {
+        // Intra-form navigation
+        KeyCode::Tab => Some(
+            if key.modifiers.contains(KeyModifiers::SHIFT) {
+                ScanConfigMsg::PrevField
+            } else {
+                ScanConfigMsg::NextField
+            }
+            .into(),
+        ),
+        KeyCode::Up if key.modifiers.is_empty() => Some(ScanConfigMsg::PrevField.into()),
+        KeyCode::Down if key.modifiers.is_empty() => Some(ScanConfigMsg::NextField.into()),
+
+        // Cursor movement within field
+        KeyCode::Left => Some(
+            if key.modifiers == KeyModifiers::CONTROL {
+                ScanConfigMsg::MovePrevWord
+            } else {
+                ScanConfigMsg::MoveCursorLeft
+            }
+            .into(),
+        ),
+        KeyCode::Right => Some(
+            if key.modifiers == KeyModifiers::CONTROL {
+                ScanConfigMsg::MoveNextWord
+            } else {
+                ScanConfigMsg::MoveCursorRight
+            }
+            .into(),
+        ),
+
+        // Editing
+        KeyCode::Backspace => Some(
+            if key.modifiers == KeyModifiers::CONTROL {
+                ScanConfigMsg::DeletePrevWord
+            } else {
+                ScanConfigMsg::RemovePrevChar
+            }
+            .into(),
+        ),
+        KeyCode::Delete => Some(
+            if key.modifiers == KeyModifiers::CONTROL {
+                ScanConfigMsg::DeleteNextWord
+            } else {
+                ScanConfigMsg::RemoveNextChar
+            }
+            .into(),
+        ),
+        // Alternative key combos
+        KeyCode::Char('w') if key.modifiers == KeyModifiers::CONTROL => {
+            Some(ScanConfigMsg::DeletePrevWord.into())
+        }
+        KeyCode::Char('d') if key.modifiers == KeyModifiers::CONTROL => {
+            Some(ScanConfigMsg::DeleteNextWord.into())
+        }
+        // Terminals sending raw ASCII for Ctrl+Backspace/Delete
+        KeyCode::Char('\u{08}') => Some(ScanConfigMsg::DeletePrevWord.into()),
+        KeyCode::Char('\u{7f}') => Some(ScanConfigMsg::DeleteNextWord.into()),
+        KeyCode::Char('h') if key.modifiers == KeyModifiers::CONTROL => {
+            Some(ScanConfigMsg::DeletePrevWord.into())
+        }
+        // Plain character input
+        KeyCode::Char(c) if key.modifiers.is_empty() => Some(ScanConfigMsg::AddChar(c).into()),
+
+        _ => None,
+    }
+}
+
+// Keys for results area (beyond global scrolling if needed)
+fn handle_key_results(_key: crossterm::event::KeyEvent) -> Option<Message> {
+    // No extra per-results keys beyond global ones for now
+    None
+}
+
+// Keys when no area is focused: allow basic navigation for ScanConfig
+fn handle_key_none(key: crossterm::event::KeyEvent) -> Option<Message> {
+    match (key.code, key.modifiers) {
+        (KeyCode::Up, m) if m.is_empty() => Some(ScanConfigMsg::PrevField.into()),
+        (KeyCode::Down, m) if m.is_empty() => Some(ScanConfigMsg::NextField.into()),
+        _ => None,
+    }
+}
+
+// Keys for header area
+fn handle_key_header(_key: crossterm::event::KeyEvent) -> Option<Message> {
+    // No header-specific keys for now
+    None
 }
 
 /// Handle mouse events

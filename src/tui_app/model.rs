@@ -12,6 +12,14 @@ pub enum RunningState {
     Done,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum FocusedArea {
+    ScanConfig,
+    Results,
+    Header,
+    None,
+}
+
 pub struct Model {
     running_state: RunningState,
     opts: Opts,
@@ -21,6 +29,7 @@ pub struct Model {
     scan_state: ScanState,
     scan_results_rx: Option<std::sync::mpsc::Receiver<crate::tui_app::message::Message>>,
     scan_handle: Option<std::thread::JoinHandle<()>>,
+    focused_area: FocusedArea,
 }
 
 impl Model {
@@ -34,6 +43,7 @@ impl Model {
             scan_state: ScanState::Idle,
             scan_results_rx: None,
             scan_handle: None,
+            focused_area: FocusedArea::ScanConfig,
         }
     }
 
@@ -106,6 +116,13 @@ impl Model {
     }
     pub fn take_scan_handle(&mut self) -> Option<std::thread::JoinHandle<()>> {
         self.scan_handle.take()
+    }
+
+    pub fn focused_area(&self) -> FocusedArea {
+        self.focused_area
+    }
+    pub fn set_focused_area(&mut self, area: FocusedArea) {
+        self.focused_area = area;
     }
 }
 

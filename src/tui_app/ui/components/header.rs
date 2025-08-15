@@ -44,7 +44,7 @@ impl HeaderComponent {
     }
 
     /// Create a line with gradient coloring and proper centering
-    fn create_gradient_line(text: &str, width: usize) -> Line {
+    fn create_gradient_line(text: &str, width: usize) -> Line<'_> {
         let padding = Self::calculate_center_padding(text.len(), width);
         let display_text = Self::truncate_if_needed(text, width);
 

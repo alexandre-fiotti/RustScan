@@ -1,5 +1,6 @@
 //! TEA Messages and Model alias
 
+use crate::tui_app::model::FocusedArea;
 use crate::tui_app::results::ResultsMsg;
 use crate::tui_app::scan_config::ScanConfigMsg;
 
@@ -10,11 +11,8 @@ pub enum AppMsg {
     ToggleBanner,
     StartScan,
     StopScan,
+    SetFocus(FocusedArea),
 }
-
-// Scan configuration messages are defined in scan_config/message.rs and re-exported here
-
-/// Messages for the results/output component
 
 /// Unified message for the application that wraps component messages
 #[derive(Debug, Clone)]
