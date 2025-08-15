@@ -11,16 +11,29 @@ use crossterm::{
 };
 use ratatui::{backend::CrosstermBackend, Terminal};
 use std::{
+    collections::HashMap,
     io::{self, Write},
+    string::ToString,
+    sync::mpsc::{channel, Sender, TryRecvError},
     thread,
     time::Duration,
 };
 
-use crate::tui_app::events::handle_event;
-use crate::tui_app::{message::Message, results::ResultsMsg};
-use crate::tui_app::{update::update, view::view, Model};
-use std::sync::mpsc::{channel, Sender};
-use std::time::Duration as StdDuration;
+use crate::{
+    address::parse_addresses,
+    port_strategy::PortStrategy,
+    scanner::Scanner,
+    tui_app::{
+        events::handle_event,
+        message::{AppMsg, Message},
+        model::ScanState,
+        results::{clear_results_sender, set_results_sender, ResultsMsg},
+        scan_config::{build_opts_from_scan_config, ScanConfig},
+        update::update,
+        view::view,
+        Model,
+    },
+};
 
 /// Run the TUI application
 pub fn run_tui() -> io::Result<()> {
@@ -107,7 +120,7 @@ fn run_loop<B: ratatui::backend::Backend>(
 
         // If a short-lived activation is in progress, finish it when due and then start scan
         if model.scan_config_mut().maybe_finish_button_activation() {
-            if let Some(next) = update(model, crate::tui_app::message::AppMsg::StartScan.into()) {
+            if let Some(next) = update(model, AppMsg::StartScan.into()) {
                 // Handle any cascaded follow-ups
                 let mut msg = next;
                 loop {
@@ -122,18 +135,17 @@ fn run_loop<B: ratatui::backend::Backend>(
 
         // Handle scan lifecycle
         match model.scan_state() {
-            crate::tui_app::model::ScanState::Requested => {
+            ScanState::Requested => {
                 // Build Opts from ScanConfig
                 let cfg = model.scan_config().clone();
                 let (tx, rx) = channel::<Message>();
                 model.set_scan_results_rx(rx);
-                crate::tui_app::results::set_results_sender(tx.clone());
+                set_results_sender(tx.clone());
                 spawn_scan_worker(cfg, tx);
-                model.set_scan_state(crate::tui_app::model::ScanState::Running);
+                model.set_scan_state(ScanState::Running);
             }
-            crate::tui_app::model::ScanState::Running => {
+            ScanState::Running => {
                 // Drain channel without blocking and detect completion
-                use std::sync::mpsc::TryRecvError;
                 let done = loop {
                     let maybe_msg = {
                         if let Some(rx) = model.scan_results_rx_ref() {
@@ -159,9 +171,9 @@ fn run_loop<B: ratatui::backend::Backend>(
                     }
                 };
                 if done {
-                    crate::tui_app::results::clear_results_sender();
+                    clear_results_sender();
                     // Ensure any lingering worker join handle is cleared next start
-                    model.set_scan_state(crate::tui_app::model::ScanState::Completed);
+                    model.set_scan_state(ScanState::Completed);
                 }
             }
             _ => {}
@@ -174,16 +186,16 @@ fn run_loop<B: ratatui::backend::Backend>(
     Ok(())
 }
 
-fn spawn_scan_worker(cfg: crate::tui_app::scan_config::ScanConfig, tx: Sender<Message>) {
+fn spawn_scan_worker(cfg: ScanConfig, tx: Sender<Message>) {
     std::thread::spawn(move || {
         // Build Opts
-        let opts_res = crate::tui_app::scan_config::build_opts_from_scan_config(&cfg);
+        let opts_res = build_opts_from_scan_config(&cfg);
         match opts_res {
             Ok(opts) => {
                 let _ = tx.send(Message::Results(ResultsMsg::AppendLine(
                     "[Scan starting]".to_string(),
                 )));
-                let ips = crate::address::parse_addresses(&opts);
+                let ips = parse_addresses(&opts);
                 if ips.is_empty() {
                     let _ = tx.send(Message::Results(ResultsMsg::AppendLine(
                         "No IPs could be resolved, aborting scan.".to_string(),
@@ -191,15 +203,11 @@ fn spawn_scan_worker(cfg: crate::tui_app::scan_config::ScanConfig, tx: Sender<Me
                     return;
                 }
 
-                let strategy = crate::port_strategy::PortStrategy::pick(
-                    &opts.range,
-                    opts.ports.clone(),
-                    opts.scan_order,
-                );
-                let scanner = crate::scanner::Scanner::new(
+                let strategy = PortStrategy::pick(&opts.range, opts.ports.clone(), opts.scan_order);
+                let scanner = Scanner::new(
                     &ips,
                     cfg.batch_size,
-                    StdDuration::from_millis(opts.timeout.into()),
+                    Duration::from_millis(opts.timeout.into()),
                     opts.tries,
                     opts.greppable,
                     strategy,
@@ -209,13 +217,11 @@ fn spawn_scan_worker(cfg: crate::tui_app::scan_config::ScanConfig, tx: Sender<Me
                 );
 
                 let scan_result = futures::executor::block_on(scanner.run());
-                use std::collections::HashMap;
-                use std::string::ToString;
                 let mut ports_per_ip: HashMap<std::net::IpAddr, Vec<u16>> = HashMap::new();
                 for socket in scan_result {
                     ports_per_ip
                         .entry(socket.ip())
-                        .or_insert_with(Vec::new)
+                        .or_default()
                         .push(socket.port());
                 }
 

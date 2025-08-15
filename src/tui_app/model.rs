@@ -2,9 +2,12 @@
 //!
 //! TEA Model: owns all UI-visible state.
 
-use crate::input::Opts;
-use crate::tui_app::results::ResultsModel;
-use crate::tui_app::scan_config::ScanConfig;
+use std::{sync::mpsc::Receiver, thread::JoinHandle};
+
+use crate::{
+    input::Opts,
+    tui_app::{message::Message, results::ResultsModel, scan_config::ScanConfig},
+};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum RunningState {
@@ -27,8 +30,8 @@ pub struct Model {
     results: ResultsModel,
     banner_collapsed: bool,
     scan_state: ScanState,
-    scan_results_rx: Option<std::sync::mpsc::Receiver<crate::tui_app::message::Message>>,
-    scan_handle: Option<std::thread::JoinHandle<()>>,
+    scan_results_rx: Option<Receiver<Message>>,
+    scan_handle: Option<JoinHandle<()>>,
     focused_area: FocusedArea,
 }
 
@@ -83,7 +86,7 @@ impl Model {
         self.banner_collapsed
     }
     pub fn toggle_banner_collapsed(&mut self) {
-        self.banner_collapsed = !self.banner_collapsed;
+        self.banner_collapsed = !self.banner_collapsed
     }
 
     pub fn scan_state(&self) -> ScanState {
@@ -93,28 +96,21 @@ impl Model {
         self.scan_state = state;
     }
 
-    pub fn take_scan_results_rx(
-        &mut self,
-    ) -> Option<std::sync::mpsc::Receiver<crate::tui_app::message::Message>> {
+    pub fn take_scan_results_rx(&mut self) -> Option<Receiver<Message>> {
         self.scan_results_rx.take()
     }
-    pub fn set_scan_results_rx(
-        &mut self,
-        rx: std::sync::mpsc::Receiver<crate::tui_app::message::Message>,
-    ) {
+    pub fn set_scan_results_rx(&mut self, rx: Receiver<Message>) {
         self.scan_results_rx = Some(rx);
     }
 
-    pub fn scan_results_rx_ref(
-        &mut self,
-    ) -> Option<&mut std::sync::mpsc::Receiver<crate::tui_app::message::Message>> {
+    pub fn scan_results_rx_ref(&mut self) -> Option<&mut Receiver<Message>> {
         self.scan_results_rx.as_mut()
     }
 
-    pub fn set_scan_handle(&mut self, handle: std::thread::JoinHandle<()>) {
+    pub fn set_scan_handle(&mut self, handle: JoinHandle<()>) {
         self.scan_handle = Some(handle);
     }
-    pub fn take_scan_handle(&mut self) -> Option<std::thread::JoinHandle<()>> {
+    pub fn take_scan_handle(&mut self) -> Option<JoinHandle<()>> {
         self.scan_handle.take()
     }
 

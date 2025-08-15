@@ -2,8 +2,7 @@
 
 use ratatui::Frame;
 
-use crate::tui_app::ui::UI;
-use crate::tui_app::Model;
+use crate::tui_app::{ui::UI, Model};
 
 /// Render using existing UI component tree
 pub fn view(model: &mut Model, frame: &mut Frame) {

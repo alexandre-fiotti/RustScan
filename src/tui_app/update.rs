@@ -1,12 +1,13 @@
 //! TEA Update function: Message -> Model transition
 
-use crate::tui_app::message::{AppMsg, Message};
-use crate::tui_app::model::FocusedArea;
-use crate::tui_app::model::ScanState;
-use crate::tui_app::results::update::update_results;
-use crate::tui_app::results::{clear_results_sender, ResultsMsg};
-use crate::tui_app::scan_config::update::update_scan_config;
-use crate::tui_app::Model;
+use crate::tui_app::{
+    message::{AppMsg, Message},
+    model::{FocusedArea, ScanState},
+    results::{clear_results_sender, update::update_results, ResultsMsg},
+    scan_config::update::update_scan_config,
+    Model,
+};
+
 /// Handle one message and update the model. Return a follow-up message to support cascading.
 pub fn update(model: &mut Model, msg: Message) -> Option<Message> {
     match msg {

@@ -1,8 +1,6 @@
 //! TEA Messages and Model alias
 
-use crate::tui_app::model::FocusedArea;
-use crate::tui_app::results::ResultsMsg;
-use crate::tui_app::scan_config::ScanConfigMsg;
+use crate::tui_app::{model::FocusedArea, results::ResultsMsg, scan_config::ScanConfigMsg};
 
 /// Top-level application messages
 #[derive(Debug, Clone)]

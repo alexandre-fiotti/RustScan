@@ -1,13 +1,16 @@
 //! Event → Message mapping (TEA)
 
-use crossterm::event::{Event, KeyCode, KeyEventKind, KeyModifiers, MouseEventKind};
+use crossterm::event::{
+    Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers, MouseButton, MouseEvent, MouseEventKind,
+};
 
-use crate::tui_app::message::{AppMsg, Message};
-use crate::tui_app::model::{FocusedArea, Model, ScanState};
-use crate::tui_app::results::ResultsMsg;
-use crate::tui_app::scan_config::ScanConfigMsg;
-use crate::tui_app::scan_config::SelectedField;
-use crate::tui_app::ui::theme::layout;
+use crate::tui_app::{
+    message::{AppMsg, Message},
+    model::{FocusedArea, Model, ScanState},
+    results::ResultsMsg,
+    scan_config::{ScanConfigMsg, SelectedField},
+    ui::theme::layout,
+};
 
 #[derive(Debug)]
 pub enum HandleEventError {
@@ -33,10 +36,7 @@ pub fn handle_event(model: &Model, event: Event) -> Result<Option<Message>, Hand
 }
 
 /// Handle keyboard events
-fn handle_key_event(
-    model: &Model,
-    key: crossterm::event::KeyEvent,
-) -> Result<Option<Message>, HandleEventError> {
+fn handle_key_event(model: &Model, key: KeyEvent) -> Result<Option<Message>, HandleEventError> {
     if key.kind == KeyEventKind::Press {
         // 1) Global shortcuts (independent of focus)
         if let Some(global) = handle_key_global(model, key) {
@@ -56,7 +56,7 @@ fn handle_key_event(
 
 // Global shortcuts: quit, stop scan, scrolling with PageUp/PageDown and Ctrl+Home/End,
 // Shift+Up/Down scroll results, Enter starts scan
-fn handle_key_global(model: &Model, key: crossterm::event::KeyEvent) -> Option<Message> {
+fn handle_key_global(model: &Model, key: KeyEvent) -> Option<Message> {
     match key.code {
         // Quit application
         KeyCode::Char('q') | KeyCode::Esc => Some(AppMsg::Quit.into()),
@@ -87,7 +87,7 @@ fn handle_key_global(model: &Model, key: crossterm::event::KeyEvent) -> Option<M
 }
 
 // Keys for scan configuration area
-fn handle_key_scan_config(key: crossterm::event::KeyEvent) -> Option<Message> {
+fn handle_key_scan_config(key: KeyEvent) -> Option<Message> {
     match key.code {
         // Intra-form navigation
         KeyCode::Tab => Some(
@@ -157,13 +157,13 @@ fn handle_key_scan_config(key: crossterm::event::KeyEvent) -> Option<Message> {
 }
 
 // Keys for results area (beyond global scrolling if needed)
-fn handle_key_results(_key: crossterm::event::KeyEvent) -> Option<Message> {
+fn handle_key_results(_key: KeyEvent) -> Option<Message> {
     // No extra per-results keys beyond global ones for now
     None
 }
 
 // Keys when no area is focused: allow basic navigation for ScanConfig
-fn handle_key_none(key: crossterm::event::KeyEvent) -> Option<Message> {
+fn handle_key_none(key: KeyEvent) -> Option<Message> {
     match (key.code, key.modifiers) {
         (KeyCode::Up, m) if m.is_empty() => Some(ScanConfigMsg::PrevField.into()),
         (KeyCode::Down, m) if m.is_empty() => Some(ScanConfigMsg::NextField.into()),
@@ -172,7 +172,7 @@ fn handle_key_none(key: crossterm::event::KeyEvent) -> Option<Message> {
 }
 
 // Keys for header area
-fn handle_key_header(_key: crossterm::event::KeyEvent) -> Option<Message> {
+fn handle_key_header(_key: KeyEvent) -> Option<Message> {
     // No header-specific keys for now
     None
 }
@@ -180,12 +180,12 @@ fn handle_key_header(_key: crossterm::event::KeyEvent) -> Option<Message> {
 /// Handle mouse events
 fn handle_mouse_event(
     model: &Model,
-    mouse: crossterm::event::MouseEvent,
+    mouse: MouseEvent,
 ) -> Result<Option<Message>, HandleEventError> {
     let msg = match mouse.kind {
         MouseEventKind::ScrollUp => Some(ResultsMsg::ScrollUp(3).into()),
         MouseEventKind::ScrollDown => Some(ResultsMsg::ScrollDown(3).into()),
-        MouseEventKind::Down(crossterm::event::MouseButton::Left) => {
+        MouseEventKind::Down(MouseButton::Left) => {
             // Map hit-testing into selection messages
             handle_component_click(model, mouse.column, mouse.row)
         }
